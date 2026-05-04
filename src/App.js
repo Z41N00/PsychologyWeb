@@ -27,7 +27,7 @@ const PAST_PAPERS = {
   ],
   "Paper 2": [
     { year: "June 2024", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202024%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202024%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
-    { year: "June 2023", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202023%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202023%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
+    { year: "June 2023", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%2023%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202023%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
     { year: "June 2022", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202022%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202022%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
     { year: "Nov 2021", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/November%202021%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/November%202021%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
     { year: "June 2020", qp: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202020%20QP%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf", ms: "https://pmt.physicsandmathstutor.com/download/Psychology/GCSE/Past-Papers/OCR/Paper-2/June%202020%20MS%20-%20Paper%202%20OCR%20Psychology%20GCSE.pdf" },
@@ -528,12 +528,10 @@ function Papers() {
   );
 }
 
-// ─── NEW COMPONENT: FLOATING STARS (FASTER & MORE FULL) ──────────────────────
+// ─── NEW COMPONENT: FLOATING STARS (SLOW & ELEGANT) ──────────────────────────
 function FloatingStars() {
-  // 150 regular stars for a dense, full background
   const stars = Array.from({ length: 150 });
-  // 8 shooting stars for that dynamic effect
-  const shootingStars = Array.from({ length: 8 });
+  const shootingStars = Array.from({ length: 4 }); // Dropped the count so they are a subtle, rare detail
   
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -547,7 +545,7 @@ function FloatingStars() {
           }
           @keyframes twinkle { 
             0%, 100% { opacity: 0.3; transform: scale(0.8); } 
-            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px #fff, 0 0 20px #a78bfa; } 
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(167, 139, 250, 0.3); } 
           }
           @keyframes shoot { 
             0% { transform: translate(120vw, -20vh) rotate(135deg); opacity: 1; } 
@@ -567,24 +565,24 @@ function FloatingStars() {
           }
           .shooting-star { 
             position: absolute; 
-            width: 150px; 
-            height: 2px; 
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, #fff 100%); 
+            width: 100px; 
+            height: 1px; 
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 100%); 
             border-radius: 50%; 
-            box-shadow: 0 0 6px #fff; 
+            box-shadow: 2px 0 4px rgba(255,255,255,0.4); 
             animation: shoot linear infinite; 
           }
         `}
       </style>
       
-      {/* Background Stars */}
+      {/* Background Stars (Slowed down for a relaxing vibe) */}
       {stars.map((_, i) => {
-        const size = Math.random() * 2.5 + 1; // 1px to 3.5px
+        const size = Math.random() * 2.5 + 1; 
         const left = Math.random() * 100;
-        const dur = Math.random() * 8 + 3; // 3s to 11s (faster float)
+        const dur = Math.random() * 15 + 10; // 10s to 25s (very slow drift)
         const del = Math.random() * 10;
-        const isTwinkling = Math.random() > 0.6; // 40% twinkle heavily
-        const twinkleDur = Math.random() * 3 + 1.5;
+        const isTwinkling = Math.random() > 0.6; 
+        const twinkleDur = Math.random() * 4 + 2;
         
         return (
           <div key={"star-"+i} className="floating-star" style={{
@@ -597,11 +595,11 @@ function FloatingStars() {
         );
       })}
       
-      {/* Shooting Stars */}
+      {/* Shooting Stars (Thin, faint, and drifting slowly) */}
       {shootingStars.map((_, i) => {
-        const dur = Math.random() * 2 + 1; // 1s to 3s (super fast)
-        const del = Math.random() * 15; // Random delays so they aren't all at once
-        const topOffset = Math.random() * 80 - 40; // Random heights
+        const dur = Math.random() * 4 + 6; // 6s to 10s (slow, elegant glide)
+        const del = Math.random() * 20 + i * 5; // Heavily staggered so they rarely overlap
+        const topOffset = Math.random() * 80 - 40; 
         
         return (
           <div key={"shoot-"+i} className="shooting-star" style={{
