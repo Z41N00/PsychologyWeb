@@ -1,23 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PsychRevise OCR</title>
-    <style>
-      /* This removes the 'bugged' white borders and matches your theme */
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #0f0f13;
-        overflow-x: hidden;
-      }
-      * {
-        box-sizing: border-box;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
+{
+  "name": "psych-revision-hub",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
+}
