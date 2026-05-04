@@ -528,41 +528,28 @@ function Papers() {
   );
 }
 
-// ─── NEW COMPONENT: FLOATING STARS ───────────────────────────────────────────
+// ─── NEW COMPONENT: FLOATING STARS (FIXED) ───────────────────────────────────
 function FloatingStars() {
-  // Generate 30 random stars
   const stars = Array.from({ length: 30 });
   
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
       <style>
-        {`
-          @keyframes floatUp {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            20% { opacity: 0.6; }
-            80% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-          }
-          .floating-star {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
-            animation: floatUp linear infinite;
-          }
-        `}
+        {`@keyframes floatUp { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 20% { opacity: 0.6; } 80% { opacity: 0.6; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } } .floating-star { position: absolute; background: rgba(255, 255, 255, 0.6); border-radius: 50%; box-shadow: 0 0 6px rgba(167, 139, 250, 0.4); animation: floatUp linear infinite; }`}
       </style>
       {stars.map((_, i) => {
-        // Randomize size, left position, animation duration, and delay for each star
         const size = Math.random() * 3 + 1;
         const left = Math.random() * 100;
-        const dur = Math.random() * 12 + 8; // Between 8s and 20s
+        const dur = Math.random() * 12 + 8;
         const del = Math.random() * 15;
         
         return (
           <div key={i} className="floating-star" style={{
-            width: size, height: size, left: \`\${left}%\`,
-            animationDuration: \`\${dur}s\`, animationDelay: \`\${del}s\`
+            width: size,
+            height: size,
+            left: left + "%",
+            animationDuration: dur + "s",
+            animationDelay: del + "s"
           }} />
         );
       })}
@@ -578,7 +565,6 @@ export default function App() {
 
   return (
     <div style={s.wrap}>
-      {/* Just dropped the stars right here so they float in the background! */}
       <FloatingStars />
       
       <div style={{ position: "relative", zIndex: 1 }}>
