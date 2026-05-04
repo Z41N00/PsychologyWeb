@@ -1,6 +1,6 @@
 {
-  "buildCommand": "react-scripts build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": "build",
+  "outputDirectory": "dist",
   "nodeVersion": "18.20.4"
 }
