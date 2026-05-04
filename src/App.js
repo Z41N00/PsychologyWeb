@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const C = {
   bg: "#0f0f13", card: "#1c1c26", nav: "#18181f", border: "#2a2a3a",
@@ -495,7 +496,7 @@ function FlightPanel({ onClose }) {
     <div style={{
       position: "fixed", right: 0, top: 0, bottom: 0, width: 300,
       background: "#10101a", borderLeft: `1px solid ${C.border}`,
-      zIndex: 100, display: "flex", flexDirection: "column",
+      zIndex: 99999, display: "flex", flexDirection: "column",
       boxShadow: "-4px 0 24px rgba(0,0,0,0.5)",
       overflowY: "auto",
     }}>
@@ -866,7 +867,7 @@ function FloatingStars() {
   const stars = Array.from({ length: 150 });
   const shootingStars = Array.from({ length: 4 });
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: -1, overflow: "hidden" }}>
       <style>{`
         @keyframes floatUp { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(167, 139, 250, 0.3); } }
@@ -963,7 +964,10 @@ export default function App() {
         </main>
       </div>
 
-      {flightOpen && <FlightPanel onClose={() => setFlightOpen(false)} />}
+      {flightOpen && createPortal(
+        <FlightPanel onClose={() => setFlightOpen(false)} />,
+        document.body
+      )}
     </div>
   );
 }
