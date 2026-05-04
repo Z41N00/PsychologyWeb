@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 const C = {
   bg: "#0f0f13", card: "#1c1c26", nav: "#18181f", border: "#2a2a3a",
@@ -548,6 +549,7 @@ export default function App() {
         {page === "Exam" && <Exam />}
         {page === "Papers" && <Papers />}
       </main>
+      <Analytics />
     </div>
   );
 }
