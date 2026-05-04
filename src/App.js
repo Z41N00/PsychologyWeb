@@ -528,26 +528,84 @@ function Papers() {
   );
 }
 
-// ─── NEW COMPONENT: FLOATING STARS (FIXED) ───────────────────────────────────
+// ─── NEW COMPONENT: FLOATING STARS (FASTER & MORE FULL) ──────────────────────
 function FloatingStars() {
-  const stars = Array.from({ length: 30 });
+  // 150 regular stars for a dense, full background
+  const stars = Array.from({ length: 150 });
+  // 8 shooting stars for that dynamic effect
+  const shootingStars = Array.from({ length: 8 });
   
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
       <style>
-        {`@keyframes floatUp { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 20% { opacity: 0.6; } 80% { opacity: 0.6; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } } .floating-star { position: absolute; background: rgba(255, 255, 255, 0.6); border-radius: 50%; box-shadow: 0 0 6px rgba(167, 139, 250, 0.4); animation: floatUp linear infinite; }`}
+        {`
+          @keyframes floatUp { 
+            0% { transform: translateY(100vh) scale(0); opacity: 0; } 
+            10% { opacity: 1; } 
+            90% { opacity: 1; } 
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; } 
+          }
+          @keyframes twinkle { 
+            0%, 100% { opacity: 0.3; transform: scale(0.8); } 
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px #fff, 0 0 20px #a78bfa; } 
+          }
+          @keyframes shoot { 
+            0% { transform: translate(120vw, -20vh) rotate(135deg); opacity: 1; } 
+            100% { transform: translate(-50vw, 150vh) rotate(135deg); opacity: 0; } 
+          }
+          .floating-star { 
+            position: absolute; 
+            background: #fff; 
+            border-radius: 50%; 
+            animation: floatUp linear infinite; 
+          }
+          .twinkle-layer { 
+            width: 100%; 
+            height: 100%; 
+            background: inherit; 
+            border-radius: inherit; 
+          }
+          .shooting-star { 
+            position: absolute; 
+            width: 150px; 
+            height: 2px; 
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, #fff 100%); 
+            border-radius: 50%; 
+            box-shadow: 0 0 6px #fff; 
+            animation: shoot linear infinite; 
+          }
+        `}
       </style>
+      
+      {/* Background Stars */}
       {stars.map((_, i) => {
-        const size = Math.random() * 3 + 1;
+        const size = Math.random() * 2.5 + 1; // 1px to 3.5px
         const left = Math.random() * 100;
-        const dur = Math.random() * 12 + 8;
-        const del = Math.random() * 15;
+        const dur = Math.random() * 8 + 3; // 3s to 11s (faster float)
+        const del = Math.random() * 10;
+        const isTwinkling = Math.random() > 0.6; // 40% twinkle heavily
+        const twinkleDur = Math.random() * 3 + 1.5;
         
         return (
-          <div key={i} className="floating-star" style={{
-            width: size,
-            height: size,
-            left: left + "%",
+          <div key={"star-"+i} className="floating-star" style={{
+            width: size + "px", height: size + "px", left: left + "vw",
+            animationDuration: dur + "s", animationDelay: del + "s",
+            opacity: isTwinkling ? 1 : (Math.random() * 0.5 + 0.3)
+          }}>
+            {isTwinkling && <div className="twinkle-layer" style={{ animation: "twinkle " + twinkleDur + "s ease-in-out infinite" }} />}
+          </div>
+        );
+      })}
+      
+      {/* Shooting Stars */}
+      {shootingStars.map((_, i) => {
+        const dur = Math.random() * 2 + 1; // 1s to 3s (super fast)
+        const del = Math.random() * 15; // Random delays so they aren't all at once
+        const topOffset = Math.random() * 80 - 40; // Random heights
+        
+        return (
+          <div key={"shoot-"+i} className="shooting-star" style={{
+            marginTop: topOffset + "vh",
             animationDuration: dur + "s",
             animationDelay: del + "s"
           }} />
