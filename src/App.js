@@ -531,7 +531,7 @@ function Papers() {
 // ─── NEW COMPONENT: FLOATING STARS (SLOW & ELEGANT) ──────────────────────────
 function FloatingStars() {
   const stars = Array.from({ length: 150 });
-  const shootingStars = Array.from({ length: 4 }); // Dropped the count so they are a subtle, rare detail
+  const shootingStars = Array.from({ length: 4 }); 
   
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -575,11 +575,11 @@ function FloatingStars() {
         `}
       </style>
       
-      {/* Background Stars (Slowed down for a relaxing vibe) */}
+      {/* Background Stars */}
       {stars.map((_, i) => {
         const size = Math.random() * 2.5 + 1; 
         const left = Math.random() * 100;
-        const dur = Math.random() * 15 + 10; // 10s to 25s (very slow drift)
+        const dur = Math.random() * 15 + 10; 
         const del = Math.random() * 10;
         const isTwinkling = Math.random() > 0.6; 
         const twinkleDur = Math.random() * 4 + 2;
@@ -595,10 +595,10 @@ function FloatingStars() {
         );
       })}
       
-      {/* Shooting Stars (Thin, faint, and drifting slowly) */}
+      {/* Shooting Stars */}
       {shootingStars.map((_, i) => {
-        const dur = Math.random() * 4 + 6; // 6s to 10s (slow, elegant glide)
-        const del = Math.random() * 20 + i * 5; // Heavily staggered so they rarely overlap
+        const dur = Math.random() * 4 + 6; 
+        const del = Math.random() * 20 + i * 5; 
         const topOffset = Math.random() * 80 - 40; 
         
         return (
@@ -616,7 +616,6 @@ function FloatingStars() {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState("Home");
-  // Added the new state to track if stars should be shown
   const [showStars, setShowStars] = useState(true);
   
   const pages = ["Home", "Topics", "Studies", "Flashcards", "Exam", "Papers"];
@@ -624,7 +623,6 @@ export default function App() {
 
   return (
     <div style={s.wrap}>
-      {/* Conditionally render the stars based on the toggle */}
       {showStars && <FloatingStars />}
       
       <div style={{ position: "relative", zIndex: 1 }}>
@@ -632,9 +630,18 @@ export default function App() {
           <span style={s.logo}>🧠 PsychRevise OCR</span>
           {pages.map(p => <button key={p} style={s.nb(page === p)} onClick={() => setPage(p)}>{labels[p]}</button>)}
           
-          {/* Added the toggle button right here, pushed to the right */}
           <button 
-            style={{ ...s.obtn, marginLeft: "auto", fontSize: 11, padding: "0.4rem 0.7rem", border: "1px solid #4b5563", color: "#9ca3af" }} 
+            style={{ 
+              ...s.obtn, 
+              marginLeft: "auto", 
+              fontSize: 11, 
+              padding: "0.4rem 0.7rem", 
+              border: `1px solid ${C.purple}`, 
+              color: C.purple,
+              background: C.purpleDim,
+              boxShadow: `0 0 12px rgba(167, 139, 250, 0.4)`,
+              transition: "all 0.3s ease"
+            }} 
             onClick={() => setShowStars(!showStars)}
           >
             {showStars ? "Turn stars Off if you cant focus" : "Turn stars On"}
