@@ -616,17 +616,29 @@ function FloatingStars() {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage] = useState("Home");
+  // Added the new state to track if stars should be shown
+  const [showStars, setShowStars] = useState(true);
+  
   const pages = ["Home", "Topics", "Studies", "Flashcards", "Exam", "Papers"];
   const labels = { Home: "Home", Topics: "Topics", Studies: "Key Studies", Flashcards: "Flashcards", Exam: "Exam Qs", Papers: "Past Papers" };
 
   return (
     <div style={s.wrap}>
-      <FloatingStars />
+      {/* Conditionally render the stars based on the toggle */}
+      {showStars && <FloatingStars />}
       
       <div style={{ position: "relative", zIndex: 1 }}>
         <nav style={s.nav}>
           <span style={s.logo}>🧠 PsychRevise OCR</span>
           {pages.map(p => <button key={p} style={s.nb(page === p)} onClick={() => setPage(p)}>{labels[p]}</button>)}
+          
+          {/* Added the toggle button right here, pushed to the right */}
+          <button 
+            style={{ ...s.obtn, marginLeft: "auto", fontSize: 11, padding: "0.4rem 0.7rem", border: "1px solid #4b5563", color: "#9ca3af" }} 
+            onClick={() => setShowStars(!showStars)}
+          >
+            {showStars ? "Turn stars Off if you cant focus" : "Turn stars On"}
+          </button>
         </nav>
         <main style={s.main}>
           {page === "Home" && <Home go={setPage} />}
