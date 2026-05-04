@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 
 const C = {
   bg: "#0f0f13", card: "#1c1c26", nav: "#18181f", border: "#2a2a3a",
@@ -197,18 +196,6 @@ const EXAM_QUESTIONS = [
   { q: "Identify and explain ONE way to improve sleep problems.", marks: 3, topic: "Sleep & Dreaming", command: "Identify & Explain", hint: "Either: relaxation techniques (calms sympathetic nervous system) OR sleep hygiene (reduce light/electronics to allow melatonin production).", paper: 1 },
 ];
 
-// ─── FLIGHT ROUTES DATA ───────────────────────────────────────────────────────
-const FLIGHT_ROUTES = [
-  { from: "Manchester", fromCode: "MAN", to: "Tokyo", toCode: "NRT", duration: 720, emoji: "🗼", description: "Cruising over the Arctic" },
-  { from: "Manchester", fromCode: "MAN", to: "New York", toCode: "JFK", duration: 480, emoji: "🗽", description: "Crossing the Atlantic" },
-  { from: "Manchester", fromCode: "MAN", to: "Sydney", toCode: "SYD", duration: 1320, emoji: "🦘", description: "Flying over Southeast Asia" },
-  { from: "Manchester", fromCode: "MAN", to: "Dubai", toCode: "DXB", duration: 420, emoji: "🌆", description: "Above the Mediterranean" },
-  { from: "Manchester", fromCode: "MAN", to: "Los Angeles", toCode: "LAX", duration: 660, emoji: "🎬", description: "Soaring over Greenland" },
-  { from: "Manchester", fromCode: "MAN", to: "Singapore", toCode: "SIN", duration: 780, emoji: "🦁", description: "Over the Indian Ocean" },
-  { from: "Manchester", fromCode: "MAN", to: "Reykjavik", toCode: "KEF", duration: 180, emoji: "🌋", description: "Above the North Atlantic" },
-  { from: "Manchester", fromCode: "MAN", to: "Cape Town", toCode: "CPT", duration: 660, emoji: "🦒", description: "Crossing the equator" },
-];
-
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 const s = {
   wrap: { minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "system-ui,sans-serif" },
@@ -270,332 +257,11 @@ function PaperTable({ paper }) {
   );
 }
 
-// ─── FOCUS SOUNDS HOOK ───────────────────────────────────────────────────────
-function useFocusSound() {
-  const ctxRef = useRef(null);
-  const nodesRef = useRef({});
-  const [active, setActive] = useState(null);
-  const [vol, setVol] = useState(0.35);
-
-  const getCtx = () => {
-    if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    return ctxRef.current;
-  };
-
-  const stopAll = () => {
-    Object.values(nodesRef.current).forEach(n => { try { n.stop(); } catch (e) {} });
-    nodesRef.current = {};
-  };
-
-  const playBrownNoise = (ctx, gainNode) => {
-    const bufferSize = ctx.sampleRate * 4;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      data[i] = (lastOut + 0.02 * white) / 1.02;
-      lastOut = data[i];
-      data[i] *= 3.5;
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.loop = true;
-    src.connect(gainNode);
-    src.start();
-    return src;
-  };
-
-  const playWhiteNoise = (ctx, gainNode) => {
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.loop = true;
-    src.connect(gainNode);
-    src.start();
-    return src;
-  };
-
-  const playPinkNoise = (ctx, gainNode) => {
-    const bufferSize = ctx.sampleRate * 4;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    for (let i = 0; i < bufferSize; i++) {
-      const w = Math.random() * 2 - 1;
-      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
-      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
-      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-      data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.11;
-      b6 = w * 0.115926;
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.loop = true;
-    src.connect(gainNode);
-    src.start();
-    return src;
-  };
-
-  const playRain = (ctx, gainNode) => {
-    const nodes = [];
-    for (let i = 0; i < 6; i++) {
-      const bufferSize = ctx.sampleRate * 2;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let j = 0; j < bufferSize; j++) data[j] = Math.random() * 2 - 1;
-      const src = ctx.createBufferSource();
-      src.buffer = buffer;
-      src.loop = true;
-      const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = 800 + i * 400;
-      filter.Q.value = 0.5;
-      src.connect(filter);
-      filter.connect(gainNode);
-      src.start(i * 0.07);
-      nodes.push(src);
-    }
-    return { stop: () => nodes.forEach(n => { try { n.stop(); } catch(e){} }) };
-  };
-
-  const playLofi = (ctx, gainNode) => {
-    const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-    const playNote = () => {
-      const osc = ctx.createOscillator();
-      const env = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.value = notes[Math.floor(Math.random() * notes.length)];
-      env.gain.setValueAtTime(0, ctx.currentTime);
-      env.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-      env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
-      osc.connect(env);
-      env.connect(gainNode);
-      osc.start();
-      osc.stop(ctx.currentTime + 1.6);
-    };
-    let running = true;
-    const schedule = () => { if (!running) return; playNote(); setTimeout(schedule, 800 + Math.random() * 1200); };
-    schedule();
-    return { stop: () => { running = false; } };
-  };
-
-  const play = (type) => {
-    stopAll();
-    if (type === active) { setActive(null); return; }
-    const ctx = getCtx();
-    if (ctx.state === "suspended") ctx.resume();
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = vol;
-    gainNode.connect(ctx.destination);
-    let src;
-    if (type === "brown") src = playBrownNoise(ctx, gainNode);
-    else if (type === "white") src = playWhiteNoise(ctx, gainNode);
-    else if (type === "pink") src = playPinkNoise(ctx, gainNode);
-    else if (type === "rain") src = playRain(ctx, gainNode);
-    else if (type === "lofi") src = playLofi(ctx, gainNode);
-    nodesRef.current = { src, gainNode };
-    setActive(type);
-  };
-
-  useEffect(() => {
-    const nodes = nodesRef.current;
-    if (nodes.gainNode) nodes.gainNode.gain.value = vol;
-  }, [vol]);
-
-  useEffect(() => () => stopAll(), []);
-
-  return { active, play, vol, setVol };
-}
-
-// ─── FOCUS SOUND BAR ─────────────────────────────────────────────────────────
-function FocusSoundBar() {
-  const { active, play, vol, setVol } = useFocusSound();
-  const sounds = [
-    { id: "brown", label: "Brown", icon: "🌊" },
-    { id: "pink", label: "Pink", icon: "🌸" },
-    { id: "white", label: "White", icon: "❄️" },
-    { id: "rain", label: "Rain", icon: "🌧️" },
-    { id: "lofi", label: "Lo-fi", icon: "🎵" },
-  ];
-  return (
-    <div style={{ background: "#13131e", borderBottom: `1px solid ${C.border}`, padding: "0.5rem 1.25rem", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-      <span style={{ color: C.dim, fontSize: 11, fontWeight: 700, textTransform: "uppercase", marginRight: 4, whiteSpace: "nowrap" }}>Focus Sounds</span>
-      {sounds.map(s => (
-        <button key={s.id} onClick={() => play(s.id)} style={{
-          background: active === s.id ? "#7C3AED33" : "transparent",
-          color: active === s.id ? C.purple : C.muted,
-          border: `1px solid ${active === s.id ? "#7C3AED" : C.border}`,
-          borderRadius: 20,
-          padding: "0.25rem 0.7rem",
-          cursor: "pointer",
-          fontSize: 12,
-          fontWeight: active === s.id ? 700 : 400,
-          display: "flex", alignItems: "center", gap: 4,
-          transition: "all 0.15s",
-        }}>
-          <span style={{ fontSize: 13 }}>{s.icon}</span>{s.label}
-          {active === s.id && <span style={{ fontSize: 10 }}>▶</span>}
-        </button>
-      ))}
-      {active && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 6 }}>
-          <span style={{ fontSize: 10, color: C.dim }}>🔉</span>
-          <input
-            type="range" min="0" max="1" step="0.05" value={vol}
-            onChange={e => setVol(parseFloat(e.target.value))}
-            style={{ width: 70, accentColor: "#7C3AED", cursor: "pointer" }}
-          />
-          <span style={{ fontSize: 10, color: C.dim }}>🔊</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── FLIGHT MODE PANEL ────────────────────────────────────────────────────────
-function FlightPanel({ onClose }) {
-  const [chosen, setChosen] = useState(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [startTime, setStartTime] = useState(null);
-  const timerRef = useRef(null);
-
-  const startFlight = (route) => {
-    setChosen(route);
-    const now = Date.now();
-    setStartTime(now);
-    setElapsed(0);
-  };
-
-  useEffect(() => {
-    if (!chosen || !startTime) return;
-    timerRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [chosen, startTime]);
-
-  const fmtTime = (secs) => {
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = secs % 60;
-    return h > 0
-      ? `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`
-      : `${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
-  };
-
-  const totalSecs = chosen ? chosen.duration * 60 : 1;
-  const progress = chosen ? Math.min(elapsed / totalSecs, 1) : 0;
-  const remaining = chosen ? Math.max(totalSecs - elapsed, 0) : 0;
-  const landed = remaining === 0 && chosen;
-
-  return (
-    <div style={{
-      position: "fixed", right: 0, top: 0, bottom: 0, width: 300,
-      background: "#10101a", borderLeft: `1px solid ${C.border}`,
-      zIndex: 99999, display: "flex", flexDirection: "column",
-      boxShadow: "-4px 0 24px rgba(0,0,0,0.5)",
-      overflowY: "auto",
-    }}>
-      <div style={{ padding: "1rem", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ color: C.purple, fontWeight: 700, fontSize: 14 }}>✈️ Flight Focus</div>
-        <button onClick={onClose} style={{ background: "none", border: "none", color: C.muted, fontSize: 18, cursor: "pointer", lineHeight: 1 }}>×</button>
-      </div>
-
-      {!chosen ? (
-        <div style={{ padding: "1rem" }}>
-          <p style={{ color: C.muted, fontSize: 12, marginBottom: "1rem" }}>Pick a destination. Your revision session becomes the flight. Land when you're done.</p>
-          {FLIGHT_ROUTES.map((r, i) => (
-            <div key={i} onClick={() => startFlight(r)} style={{
-              background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "0.75rem 1rem",
-              marginBottom: 8, cursor: "pointer", transition: "border-color 0.15s",
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "#7C3AED"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ color: C.bright, fontWeight: 600, fontSize: 13 }}>{r.emoji} {r.to}</div>
-                  <div style={{ color: C.dim, fontSize: 11, marginTop: 2 }}>{r.fromCode} → {r.toCode}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ color: C.purple, fontSize: 12, fontWeight: 700 }}>{r.duration >= 60 ? `${Math.floor(r.duration / 60)}h ${r.duration % 60 > 0 ? `${r.duration % 60}m` : ""}` : `${r.duration}m`}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column" }}>
-          {landed ? (
-            <div style={{ textAlign: "center", paddingTop: "2rem" }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>{chosen.emoji}</div>
-              <div style={{ color: C.green, fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Landed in {chosen.to}!</div>
-              <div style={{ color: C.muted, fontSize: 13, marginBottom: "1.5rem" }}>You studied for {fmtTime(elapsed)}. Brilliant work.</div>
-              <button onClick={() => { setChosen(null); setElapsed(0); }} style={s.btn()}>New flight</button>
-            </div>
-          ) : (
-            <>
-              <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-                <div style={{ fontSize: 32 }}>✈️</div>
-                <div style={{ color: C.bright, fontWeight: 700, fontSize: 16, marginTop: 4 }}>{chosen.from} → {chosen.to}</div>
-                <div style={{ color: C.muted, fontSize: 11, marginTop: 2 }}>{chosen.description}</div>
-              </div>
-
-              {/* Progress bar */}
-              <div style={{ background: C.border, borderRadius: 99, height: 6, marginBottom: "1rem", overflow: "hidden" }}>
-                <div style={{
-                  width: `${progress * 100}%`,
-                  height: "100%",
-                  background: `linear-gradient(90deg, #7C3AED, #a78bfa)`,
-                  borderRadius: 99,
-                  transition: "width 1s linear",
-                }} />
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: "1rem" }}>
-                {[
-                  { label: "Elapsed", val: fmtTime(elapsed) },
-                  { label: "Remaining", val: fmtTime(remaining) },
-                  { label: "Progress", val: `${Math.round(progress * 100)}%` },
-                  { label: "Destination", val: chosen.toCode },
-                ].map(item => (
-                  <div key={item.label} style={{ background: C.card, borderRadius: 8, padding: "0.6rem 0.75rem", border: `1px solid ${C.border}` }}>
-                    <div style={{ color: C.dim, fontSize: 10, fontWeight: 700, textTransform: "uppercase", marginBottom: 2 }}>{item.label}</div>
-                    <div style={{ color: C.bright, fontWeight: 700, fontSize: 14 }}>{item.val}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Plane animation */}
-              <div style={{ position: "relative", height: 36, marginBottom: "1rem", overflow: "hidden" }}>
-                <div style={{ position: "absolute", left: `${Math.min(progress * 88, 88)}%`, top: "50%", transform: "translateY(-50%)", fontSize: 20, transition: "left 1s linear" }}>✈️</div>
-                <div style={{ position: "absolute", left: 0, right: 0, top: "50%", borderBottom: `1px dashed ${C.border}`, marginTop: -1 }} />
-                <div style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>{chosen.emoji}</div>
-              </div>
-
-              <div style={{ color: C.dim, fontSize: 11, textAlign: "center", marginBottom: "1rem", fontStyle: "italic" }}>
-                "{chosen.description} at {Math.round(35000 - (progress > 0.1 && progress < 0.9 ? 0 : 5000))} ft"
-              </div>
-
-              <button onClick={() => { setChosen(null); setElapsed(0); }} style={{ ...s.obtn, width: "100%", textAlign: "center", marginTop: "auto" }}>
-                ↩ Change flight
-              </button>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── PAGES ───────────────────────────────────────────────────────────────────
 function Home({ go }) {
   return (
     <div>
+      {/* Countdown banner */}
       <div style={{ background: "#1a1228", border: `1px solid ${C.purpleBorder}`, borderRadius: 12, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
         <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>UPCOMING EXAM DATES — OCR GCSE PSYCHOLOGY</div>
         <div style={s.grid(200)}>
@@ -862,38 +528,86 @@ function Papers() {
   );
 }
 
-// ─── FLOATING STARS ───────────────────────────────────────────────────────────
+// ─── NEW COMPONENT: FLOATING STARS (SLOW & ELEGANT) ──────────────────────────
 function FloatingStars() {
   const stars = Array.from({ length: 150 });
-  const shootingStars = Array.from({ length: 4 });
+  const shootingStars = Array.from({ length: 4 }); 
+  
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: -1, overflow: "hidden" }}>
-      <style>{`
-        @keyframes floatUp { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
-        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(167, 139, 250, 0.3); } }
-        @keyframes shoot { 0% { transform: translate(120vw, -20vh) rotate(135deg); opacity: 1; } 100% { transform: translate(-50vw, 150vh) rotate(135deg); opacity: 0; } }
-        .floating-star { position: absolute; background: #fff; border-radius: 50%; animation: floatUp linear infinite; }
-        .twinkle-layer { width: 100%; height: 100%; background: inherit; border-radius: inherit; }
-        .shooting-star { position: absolute; width: 100px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 100%); border-radius: 50%; box-shadow: 2px 0 4px rgba(255,255,255,0.4); animation: shoot linear infinite; }
-      `}</style>
+    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+      <style>
+        {`
+          @keyframes floatUp { 
+            0% { transform: translateY(100vh) scale(0); opacity: 0; } 
+            10% { opacity: 1; } 
+            90% { opacity: 1; } 
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; } 
+          }
+          @keyframes twinkle { 
+            0%, 100% { opacity: 0.3; transform: scale(0.8); } 
+            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(167, 139, 250, 0.3); } 
+          }
+          @keyframes shoot { 
+            0% { transform: translate(120vw, -20vh) rotate(135deg); opacity: 1; } 
+            100% { transform: translate(-50vw, 150vh) rotate(135deg); opacity: 0; } 
+          }
+          .floating-star { 
+            position: absolute; 
+            background: #fff; 
+            border-radius: 50%; 
+            animation: floatUp linear infinite; 
+          }
+          .twinkle-layer { 
+            width: 100%; 
+            height: 100%; 
+            background: inherit; 
+            border-radius: inherit; 
+          }
+          .shooting-star { 
+            position: absolute; 
+            width: 100px; 
+            height: 1px; 
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 100%); 
+            border-radius: 50%; 
+            box-shadow: 2px 0 4px rgba(255,255,255,0.4); 
+            animation: shoot linear infinite; 
+          }
+        `}
+      </style>
+      
+      {/* Background Stars */}
       {stars.map((_, i) => {
-        const size = Math.random() * 2.5 + 1;
+        const size = Math.random() * 2.5 + 1; 
         const left = Math.random() * 100;
-        const dur = Math.random() * 15 + 10;
+        const dur = Math.random() * 15 + 10; 
         const del = Math.random() * 10;
-        const isTwinkling = Math.random() > 0.6;
+        const isTwinkling = Math.random() > 0.6; 
         const twinkleDur = Math.random() * 4 + 2;
+        
         return (
-          <div key={"star-" + i} className="floating-star" style={{ width: size + "px", height: size + "px", left: left + "vw", animationDuration: dur + "s", animationDelay: del + "s", opacity: isTwinkling ? 1 : (Math.random() * 0.5 + 0.3) }}>
+          <div key={"star-"+i} className="floating-star" style={{
+            width: size + "px", height: size + "px", left: left + "vw",
+            animationDuration: dur + "s", animationDelay: del + "s",
+            opacity: isTwinkling ? 1 : (Math.random() * 0.5 + 0.3)
+          }}>
             {isTwinkling && <div className="twinkle-layer" style={{ animation: "twinkle " + twinkleDur + "s ease-in-out infinite" }} />}
           </div>
         );
       })}
+      
+      {/* Shooting Stars */}
       {shootingStars.map((_, i) => {
-        const dur = Math.random() * 4 + 6;
-        const del = Math.random() * 20 + i * 5;
-        const topOffset = Math.random() * 80 - 40;
-        return <div key={"shoot-" + i} className="shooting-star" style={{ marginTop: topOffset + "vh", animationDuration: dur + "s", animationDelay: del + "s" }} />;
+        const dur = Math.random() * 4 + 6; 
+        const del = Math.random() * 20 + i * 5; 
+        const topOffset = Math.random() * 80 - 40; 
+        
+        return (
+          <div key={"shoot-"+i} className="shooting-star" style={{
+            marginTop: topOffset + "vh",
+            animationDuration: dur + "s",
+            animationDelay: del + "s"
+          }} />
+        );
       })}
     </div>
   );
@@ -903,57 +617,36 @@ function FloatingStars() {
 export default function App() {
   const [page, setPage] = useState("Home");
   const [showStars, setShowStars] = useState(true);
-  const [flightOpen, setFlightOpen] = useState(false);
-
+  
   const pages = ["Home", "Topics", "Studies", "Flashcards", "Exam", "Papers"];
   const labels = { Home: "Home", Topics: "Topics", Studies: "Key Studies", Flashcards: "Flashcards", Exam: "Exam Qs", Papers: "Past Papers" };
 
   return (
-    <div style={{ ...s.wrap, paddingRight: flightOpen ? 300 : 0 }}>
+    <div style={s.wrap}>
       {showStars && <FloatingStars />}
-
+      
       <div style={{ position: "relative", zIndex: 1 }}>
         <nav style={s.nav}>
           <span style={s.logo}>🧠 PsychRevise OCR</span>
           {pages.map(p => <button key={p} style={s.nb(page === p)} onClick={() => setPage(p)}>{labels[p]}</button>)}
-
-          <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-            <button
-              onClick={() => setFlightOpen(f => !f)}
-              style={{
-                background: flightOpen ? "#7C3AED33" : "transparent",
-                color: flightOpen ? C.purple : C.muted,
-                border: `1px solid ${flightOpen ? "#7C3AED" : C.border}`,
-                borderRadius: 20,
-                padding: "0.3rem 0.8rem",
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: flightOpen ? 700 : 400,
-                display: "flex", alignItems: "center", gap: 4,
-              }}
-            >
-              ✈️ <span>Flight Focus</span>
-            </button>
-
-            <button
-              style={{
-                ...s.obtn,
-                fontSize: 11,
-                padding: "0.4rem 0.7rem",
-                border: `1px solid ${C.purple}`,
-                color: C.purple,
-                background: C.purpleDim,
-                boxShadow: `0 0 12px rgba(167, 139, 250, 0.4)`,
-              }}
-              onClick={() => setShowStars(!showStars)}
-            >
-              {showStars ? "Turn stars Off if you cant focus" : "Turn stars On"}
-            </button>
-          </div>
+          
+          <button 
+            style={{ 
+              ...s.obtn, 
+              marginLeft: "auto", 
+              fontSize: 11, 
+              padding: "0.4rem 0.7rem", 
+              border: `1px solid ${C.purple}`, 
+              color: C.purple,
+              background: C.purpleDim,
+              boxShadow: `0 0 12px rgba(167, 139, 250, 0.4)`,
+              transition: "all 0.3s ease"
+            }} 
+            onClick={() => setShowStars(!showStars)}
+          >
+            {showStars ? "Turn stars Off if you cant focus" : "Turn stars On"}
+          </button>
         </nav>
-
-        <FocusSoundBar />
-
         <main style={s.main}>
           {page === "Home" && <Home go={setPage} />}
           {page === "Topics" && <Topics />}
@@ -963,11 +656,6 @@ export default function App() {
           {page === "Papers" && <Papers />}
         </main>
       </div>
-
-      {flightOpen && createPortal(
-        <FlightPanel onClose={() => setFlightOpen(false)} />,
-        document.body
-      )}
     </div>
   );
 }
