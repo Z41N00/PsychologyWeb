@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const C = {
   bg: "#0f0f13", card: "#1c1c26", nav: "#18181f", border: "#2a2a3a",
@@ -8,8 +8,22 @@ const C = {
   amber: "#fbbf24", red: "#f87171", blue: "#60a5fa",
 };
 
-// ─── DATA ────────────────────────────────────────────────────────────────────
+// ─── GRADE BOUNDARIES 2025 ───────────────────────────────────────────────────
+const BOUNDARIES_2025 = {
+  p1: { max: 90, boundaries: [{ g: 9, m: 77 }, { g: 8, m: 71 }, { g: 7, m: 65 }, { g: 6, m: 57 }, { g: 5, m: 50 }, { g: 4, m: 42 }, { g: 3, m: 32 }, { g: 2, m: 22 }, { g: 1, m: 11 }] },
+  p2: { max: 90, boundaries: [{ g: 9, m: 78 }, { g: 8, m: 72 }, { g: 7, m: 67 }, { g: 6, m: 59 }, { g: 5, m: 51 }, { g: 4, m: 44 }, { g: 3, m: 33 }, { g: 2, m: 22 }, { g: 1, m: 12 }] },
+  overall: { max: 180, boundaries: [{ g: 9, m: 155 }, { g: 8, m: 143 }, { g: 7, m: 132 }, { g: 6, m: 116 }, { g: 5, m: 101 }, { g: 4, m: 86 }, { g: 3, m: 65 }, { g: 2, m: 44 }, { g: 1, m: 23 }] },
+};
 
+function getGrade(mark, boundaries) {
+  for (const b of boundaries) { if (mark >= b.m) return b.g; }
+  return "U";
+}
+
+// ─── PAST PAPER LOG DATA ─────────────────────────────────────────────────────
+const PAPER_YEARS = ["Specimen", "June 2018", "June 2019", "Nov 2020", "Nov 2021", "June 2022", "June 2023", "June 2024"];
+
+// ─── EXAM DATES ──────────────────────────────────────────────────────────────
 const EXAM_DATES = [
   { paper: "Paper 1", date: "Thursday 7th May 2026", days: Math.ceil((new Date("2026-05-07") - new Date()) / 86400000) },
   { paper: "Paper 2", date: "Thursday 14th May 2026", days: Math.ceil((new Date("2026-05-14") - new Date()) / 86400000) },
@@ -70,7 +84,7 @@ const TOPICS = [
     ],
     studies: [
       { name: "Daniels et al. (1991) — Amphetamines & Schizophrenia", aim: "To see whether amphetamines affect PFC and WCST performance.", sample: "10 chronic schizophrenics from the same hospital.", method: "Lab experiment (double-blind) — repeated measures design.", procedure: "Participant received dose of amphetamine or placebo. Completed the Card Sort test (PFC task) and BAR task (control task) on a computer whilst having SPECT scan. Did same 2–4 days later but swapped (double-blind).", findings: "No difference in BAR task (control). Small difference between amphetamine & placebo in the WCST as some areas of the prefrontal cortex were active. Amphetamines shown to increase the ability of the prefrontal cortex to focus in the WCST.", limitations: "Sample too small (can't be generalised) & culturally biased (unrepresentative). Ethical issues: using brain scans for research not medical reasons." },
-      { name: "Tandoc et al. (2015) — Facebook & Depression", aim: "To see whether Facebook use predicted depression.", sample: "854 journalism students from a US university (68% female).", method: "Questionnaire (online survey).", procedure: "Completed questionnaire: 1. Facebook usage and surveillance. 2. Envy Scale. 3. Depression symptoms. *Facebook surveillance involves looking at friends' status but not commenting or posting own information.", findings: "Heavy Facebook users = stronger feelings of envy. Size of the network of FB friends not related to envy. FB envy was a predictor of depression. Use of FB not directly lead to depression. But, FB envy can lead to depression.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Self-report — participants could have lied due to social desirability." },
+      { name: "Tandoc et al. (2015) — Facebook & Depression", aim: "To see whether Facebook use predicted depression.", sample: "736 journalism students from a US university (68% female).", method: "Questionnaire (online survey).", procedure: "Completed questionnaire: 1. Facebook usage and surveillance. 2. Envy Scale. 3. Depression symptoms. *Facebook surveillance involves looking at friends' status but not commenting or posting own information.", findings: "Heavy Facebook users = stronger feelings of envy. Size of the network of FB friends not related to envy. FB envy was a predictor of depression. Use of FB not directly lead to depression. But, FB envy can lead to depression.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Self-report — participants could have lied due to social desirability." },
     ],
     applications: "Use of drugs to treat conditions:\nDepression: anti-depressant drugs increase the number of neurotransmitters in the brain (serotonin or noradrenaline). Excess serotonin helps the neurons communicate better, which helps people feel less depressed.\nSchizophrenia: anti-psychotic drugs act by blocking some of the dopamine receptors. By reducing the level of dopamine, it reduces the effects of the psychotic episode.\n\nPsychotherapy — talking therapies (no drugs): CBT — aims to change how the individual thinks & behaves: to confront the negative irrational thoughts and how they impact on the individual. Using Ellis' A-B-C model:\nD= Disputing (questioning) the persons irrational beliefs.\nE= Effect of changing the interpretation of an event.",
   },
@@ -91,12 +105,12 @@ const TOPICS = [
     ],
     studies: [
       { name: "NatCen [Morrell et al.] (2011) — Tottenham Riots", aim: "To answer the question: 'why did young people get involved in the Tottenham riots?'", sample: "36 participants (evenly split between those older or younger than 18).", method: "Interviews.", procedure: "Participants were interviewed 5 weeks after the riots occurred. Researchers gained full informed consent & confidentiality & anonymity was ensured. Participants were interviewed individually or in groups — 2 or 4.", findings: "Four different types of involvement: watchers, rioters, looters, non-involved. Different factors made people more likely (nudge factors) or less likely (tug factors) to get involved. These were divided into dispositional factors (e.g. having poor job prospects) and situational, nudge factor (friends not being involved). People influenced by what they thought was right or wrong & if benefits outweighed risks.", limitations: "Interviews so could have been dishonest because of social desirability (lacks validity). Many participants were accessed in prison (not representative of all who took part)." },
-      { name: "Bickman (1974) — Power of Uniform on Obedience", aim: "To see whether a person's appearance affects obedience.", sample: "153 pedestrians on the streets of Brooklyn, New York.", method: "Field experiment — opportunity sample.", procedure: "3 experimenters who dressed in 3 uniforms (a guard, a milkman and a civilian). In each uniform gave one of three orders: (1) pick up litter, (2) stand the other side of a bus stop or (3) give someone £ for a parking meter. Bickman wanted to know how many people obeyed each researcher in each uniform by following the orders or not. N.B. There are experiments 2 & 3 to look at.", findings: "The higher the (perceived) status of the uniform, the higher the obedience levels. Guard = 89%, Milkman = 57%, Civilian = 33%.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Field experiment so extraneous variables (noise etc.) an issue." },
+      { name: "Bickman (1974) — Power of Uniform on Obedience", aim: "To see whether a person's appearance affects obedience.", sample: "153 pedestrians on the streets of Brooklyn, New York.", method: "Field experiment — opportunity sample.", procedure: "3 experimenters who dressed in 3 uniforms (a guard, a milkman and a civilian). In each uniform gave one of three orders: (1) pick up litter, (2) stand the other side of a bus stop or (3) give someone £ for a parking meter.", findings: "The higher the (perceived) status of the uniform, the higher the obedience levels. Guard = 89%, Milkman = 57%, Civilian = 33%.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Field experiment so extraneous variables (noise etc.) an issue." },
     ],
     applications: "Changing Attitudes to Mental Health Stigma & Discrimination:\n1. Minority Influence: where a small group of people can change the opinion and belief of larger groups. Techniques include: Behavioural style — consistent, clear messages. Style of thinking — understand the majority audience. Commitment — strongly supporting the minority view. Flexibility — not being too radical. Use of identification — peer 2 peer delivery.\n\n2. Majority Influence could help change the view of the minority discriminatory view by trying to get them to conform to the group norm and internalise the beliefs.\nLanguage — stop using stigmatised vocabulary.\nTreat mental health as a physical problem.",
   },
   {
-    id: "development", name: "Development", paper: 2, color: "#34d399",
+    id: "development", name: "Development", paper: 1, color: "#34d399",
     keyDebates: ["Nature (innate development) vs. Nurture (learned/society)", "Reductionism (Piaget — all stages universal & invariant)", "Field Experiment (Blackwell) & Natural Experiment (Piaget)"],
     keyConcepts: [
       { term: "Development", def: "How we change & mature across our lifetime." },
@@ -108,10 +122,17 @@ const TOPICS = [
       { title: "Dweck & Willingham's Learning Theories", content: `Dweck's learning theory states that mindset relates to the way that we think in relation to where our talents come from and whether these are changeable.\n\nGrowth mindset: believe intelligence can be developed through experiences and if we work hard and learn skills then our abilities and therefore our intelligence will improve.\n\nFixed mindset: believe that intelligence is predefined and we are born with certain abilities. Fear failure as it reflects badly on their innate talents.\n\nPraise for Effort: Teachers & parents play an important role in the development of different mindsets through giving praise for the amount of effort made.\n\nWillingham's learning theory: there is no evidence to support the view that individuals have preferences about how to learn — learning styles don't exist.\n\nLearning occurs through meaning, not styles: Students are different in their abilities, interests and prior knowledge, but not in their learning styles. He argues for the importance of meaning for learning. Most of the information that you are required to learn is not visual or auditory, it is meaning based — most learning takes place through understanding the meaning.\n\nLimitations:\n- Dweck's theory can be criticised for focusing too much on the importance of nurture in that achievement is dependent on effort praise (ignores biological learning difficulties & disabilities).\n- Willingham ignores innate factors in development (e.g. hearing or sight loss).` },
     ],
     studies: [
-      { name: "Piaget (1952) — Conservation of Number", aim: "To see the stage of development when children are able to conserve.", sample: "Swiss children in the pre-operational & concrete operational stages.", method: "Natural experiment and cross-sectional study.", procedure: "a) Each child was presented with two identical, parallel lines of counter. b) Was asked 'Is there the same number of counters in each row?' c) Then watched as one of the lines was spread out (no more counters were added). d) Was then asked for a 2nd time 'Is there the same number of counters in each row?'", findings: "Children at the beginning of the pre-operational stage (3–4 years) = more in stretched row. Children at the end of the pre-operational stage (5–6 years) = both the same, couldn't say why. Children in the concrete operational stage (7+) = both rows he same & could explain why. Children in the concrete operational stage were able to conserve.", limitations: "Sample too small & culturally biased (Swiss, own children) — cannot be generalised. Design is invalid — asked same question twice so some answered based thinking it was wrong the 1st time." },
-      { name: "Blackwell et al. (2007) — Fixed & Growth Mindset", aim: "To see the impact of growth mindset on maths motivation and achievement.", sample: "373 NY students / 99 NY students.", method: "Correlation study / Field experiment.", procedure: "a) 7th grade students were given a maths test & motivation questionnaire. b) Students had either a 8-week growth mindset intervention or control. c) 3 weeks after intervention — given motivation questionnaire again (measuring fixed and growth mindset). Teacher reports & maths grades also used.", findings: "Start of 7th grade: GM = no correlation between mindset and maths. End of 7th grade = fixed/growth mindset a predictor of maths results. Growth mindset (GM) is related to maths ability & teaching GM has a positive impact on maths achievement. GM group had more a growth mindset after the intervention & were reported by teachers to be more motivated & got better maths grades.", limitations: "Sample culturally biased (can't be generalised). Study too reductionist — only focuses on student mindset not influence of others." },
+      { name: "Piaget (1952) — Conservation of Number", aim: "To see the stage of development when children are able to conserve.", sample: "Swiss children in the pre-operational & concrete operational stages.", method: "Natural experiment and cross-sectional study.", procedure: "a) Each child was presented with two identical, parallel lines of counter. b) Was asked 'Is there the same number of counters in each row?' c) Then watched as one of the lines was spread out. d) Was then asked for a 2nd time 'Is there the same number of counters in each row?'", findings: "Children at the beginning of the pre-operational stage (3–4 years) = more in stretched row. Children at the end of the pre-operational stage (5–6 years) = both the same, couldn't say why. Children in the concrete operational stage (7+) = both rows the same & could explain why.", limitations: "Sample too small & culturally biased (Swiss, own children) — cannot be generalised. Design is invalid — asked same question twice so some answered based thinking it was wrong the 1st time." },
+      {
+        name: "Blackwell et al. (2007) — Fixed & Growth Mindset",
+        isMultiStudy: true,
+        studies: [
+          { label: "Study 1 — Correlation", aim: "To see if mindset correlated with maths achievement in 7th grade students.", sample: "373 New York students.", method: "Correlation study.", procedure: "7th grade students were given a maths test & motivation questionnaire at the start and end of 7th grade. Measured fixed/growth mindset and maths grades.", findings: "Start of 7th grade: no correlation between mindset and maths. End of 7th grade: fixed/growth mindset became a predictor of maths results. Growth mindset is related to maths ability.", limitations: "Sample culturally biased (NY students only — can't generalise). Correlation doesn't show cause and effect." },
+          { label: "Study 2 — Field Experiment", aim: "To see if teaching a growth mindset intervention improved maths motivation and achievement.", sample: "99 New York students.", method: "Field experiment.", procedure: "Students had either an 8-week growth mindset intervention or control. 3 weeks after — given motivation questionnaire again. Teacher reports & maths grades also used.", findings: "GM group had more a growth mindset after the intervention & were reported by teachers to be more motivated & got better maths grades than the control group.", limitations: "Sample culturally biased (can't be generalised). Study too reductionist — only focuses on student mindset, not the influence of others." },
+        ]
+      },
     ],
-    applications: "Readiness for Questioning: Ensuring that teachers ask students questions in a way that mirrors their development stage. Why? Piaget claimed that children need to have learning experiences based on their developmental stage in order to confidently tackle & learn from the question.\n\nReadiness for Key Stages: Key stages are aged related stages of development used to organise the education of children. Why? Piaget's stages are linked to the different key stages in education.\n\nGrowth Mindset — Praise for Effort: Teachers set small but doable tasks to make progress & praise for effort rather than attainment/intelligence so they develop a love of learning & seek to improve & try new things.\n\nMeaning not Learning Styles: Teachers support students to think about meaning of information and linking to prior experiences etc.",
+    applications: "Readiness for Questioning: Ensuring that teachers ask students questions in a way that mirrors their development stage.\n\nReadiness for Key Stages: Key stages are aged related stages of development used to organise the education of children. Piaget's stages are linked to the different key stages in education.\n\nGrowth Mindset — Praise for Effort: Teachers set small but doable tasks to make progress & praise for effort rather than attainment/intelligence so they develop a love of learning & seek to improve & try new things.\n\nMeaning not Learning Styles: Teachers support students to think about meaning of information and linking to prior experiences etc.",
   },
   {
     id: "criminal", name: "Criminal Psychology", paper: 1, color: "#fb923c",
@@ -126,31 +147,31 @@ const TOPICS = [
     ],
     sections: [
       { title: "Eysenck's Criminal Personality Theory", content: `Criminal personality — traits associated with people who commit crimes. Something that is inherited through genetic inheritance & innate (born with it).\n\nExtraversion: High E score = sociable, lively and sensation seeking. BRAIN: extroverts have a low level of arousal in their cerebral cortex (as stimuli is restricted by RAS) and therefore need more stimulation from their environment, leading to risky & anti-social behaviour.\n\nNeuroticism: High N scores = anxious & react very strongly to aversive stimuli. BRAIN: the ANS becomes over-aroused and affects the limbic system, causing violent & unstable behaviour.\n\nPsychoticism: High P score = aggressive & egocentric. BRAIN: due to an excess of dopaminergic neurons, which causes an overproduction of dopamine and leads to less inhibitions & more aggressive behaviour.\n\nEysenck believed that criminality develops mainly due to genetics but early socialisation and difficulties in conditioning can also play a part.\n\nLimitations:\n- Ignores individual differences — unlikely criminals who commit different crimes all share a similar personality.\n- Too deterministic as it ignores free will.\n- Merely identifies certain characteristics that may link to criminality. It does not inform us why individuals commit criminal acts.` },
-      { title: "Social Learning Theory of Criminality", content: `Bandura suggested that all behaviour is learnt through observation & children are particularly influenced by what they see, this includes criminal behaviour.\n\nRole Models & Identification: Children will identify with role models — people we look up to and respect who model behaviour for us. They will decide they want to be like these people.\n\nObservation & Imitation: A child may observe a criminal act — creates a mental representation in their mind because they have seen this particular behaviour they are more likely to copy it.\n\nVicarious Reinforcement: A role model is observed being rewarded for their criminality: financially or through an increased status. More likely to lead to criminality being imitated if positive.\n\nDirect Reinforcement: Observer engages in criminal act and receives reward, likely to continue. N.B. reinforcement can also be negative & can deter.\n\nInternalisation: The behaviour becomes part of us & no longer needs to be reinforced for it to continue — will repeat behaviour despite consequences (e.g. punishment, harm).\n\nLimitations:\n- Ignores the role of nature — e.g. brain dysfunction & genetics.\n- Doesn't explain how criminal behaviour starts in the first place (first wave criminals).\n- If it's correct, should be easier to reduce crime through conditioning.` },
+      { title: "Social Learning Theory of Criminality", content: `Bandura suggested that all behaviour is learnt through observation & children are particularly influenced by what they see, this includes criminal behaviour.\n\nRole Models & Identification: Children will identify with role models — people we look up to and respect who model behaviour for us. They will decide they want to be like these people.\n\nObservation & Imitation: A child may observe a criminal act — creates a mental representation in their mind because they have seen this particular behaviour they are more likely to copy it.\n\nVicarious Reinforcement: A role model is observed being rewarded for their criminality: financially or through an increased status. More likely to lead to criminality being imitated if positive.\n\nDirect Reinforcement: Observer engages in criminal act and receives reward, likely to continue.\n\nInternalisation: The behaviour becomes part of us & no longer needs to be reinforced for it to continue.\n\nLimitations:\n- Ignores the role of nature — e.g. brain dysfunction & genetics.\n- Doesn't explain how criminal behaviour starts in the first place (first wave criminals).\n- If it's correct, should be easier to reduce crime through conditioning.` },
     ],
     studies: [
-      { name: "Heaven (1996) — Delinquency & Eysenck's Personality Traits", aim: "To test the correlation between Eysenck's personality traits and delinquency.", sample: "282 teenagers (aged 13–15) from two Catholic schools in Australia.", method: "Questionnaire and longitudinal study.", procedure: "Participants completed questionnaires at Time 1 (around 14 years old) and 2 years later at Time 2 (around 16 years old). 1) Measured psychoticism, extraversion and self-esteem (better measure than neuroticism). 2) Used self-report to measure delinquency (looked at violence, vandalism & theft).", findings: "Males are more likely than females to be involved delinquency at Time 1 & Time 2. There was found to be a positive correlation between psychoticism & delinquency at Time 1 & Time 2. But traits only explain a part of criminal behaviour. Psychoticism is linked to delinquency.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Limited by social desirability as it was a self-report." },
-      { name: "Cooper & Mackie (1986) — Video Games & Aggression", aim: "To see if aggressive video games would lead to increased aggression.", sample: "84 children, aged 9–11 from schools in New Jersey, USA.", method: "Lab experiment, independent measures design.", procedure: "1) Two groups — played or observed either missile command (high agg.), pacman (low agg.), or maze (control). 2) Playroom — observed which toys each child played with (aggressive, active, quiet, skill). 3) Asked questions about reward/punishment using buzzer.", findings: "Children playing aggressive game spent longer playing with aggressive toy. Especially with girls. Boys preferred to play. Type of game had no effect on interpersonal aggression (buzzer questions). Playing or watching an aggressive video game had an impact on aggressive behaviour of girls but not boys.", limitations: "Sample was culturally biased — cannot be generalised. Lacks ecological validity as it was a lab experiment (artificial conditions)." },
+      { name: "Heaven (1996) — Delinquency & Eysenck's Personality Traits", aim: "To test the correlation between Eysenck's personality traits and delinquency.", sample: "282 teenagers (aged 13–15) from two Catholic schools in Australia.", method: "Questionnaire and longitudinal study.", procedure: "Participants completed questionnaires at Time 1 (around 14 years old) and 2 years later at Time 2 (around 16 years old). 1) Measured psychoticism, extraversion and self-esteem. 2) Used self-report to measure delinquency (violence, vandalism & theft).", findings: "Males are more likely than females to be involved in delinquency at Time 1 & Time 2. There was a positive correlation between psychoticism & delinquency at Time 1 & Time 2. Psychoticism is linked to delinquency.", limitations: "Sample culturally biased (unrepresentative & can't be generalised). Limited by social desirability as it was a self-report." },
+      { name: "Cooper & Mackie (1986) — Video Games & Aggression", aim: "To see if aggressive video games would lead to increased aggression.", sample: "84 children, aged 9–11 from schools in New Jersey, USA.", method: "Lab experiment, independent measures design.", procedure: "1) Two groups — played or observed either missile command (high agg.), pacman (low agg.), or maze (control). 2) Playroom — observed which toys each child played with. 3) Asked questions about reward/punishment using buzzer.", findings: "Children playing aggressive game spent longer playing with aggressive toy. Especially with girls. Type of game had no effect on interpersonal aggression. Playing or watching an aggressive video game had an impact on aggressive behaviour of girls but not boys.", limitations: "Sample was culturally biased — cannot be generalised. Lacks ecological validity as it was a lab experiment." },
     ],
     applications: "Use of Punishment to Reduce Anti-Social Behaviour:\n(a) Prisons: taking away freedom, rights & privileges.\n(b) Fines: money can be an incentive to committing crimes like theft so loss of money should have the opposite effect.\n(c) Community sentences: offenders also pay back to society by giving up their time.\n(d) Deterrent: Many people do not commit crimes in the first place and this is because they want to avoid the negative consequences that they have seen others suffer.\n\nUse of Rehabilitation to Promote Pro-Social Behaviour:\n(a) Restorative justice: The victim of the crime will meet the criminal, the offender has to take responsibility or their crime and face the consequences of their actions when talking with their victim. Offenders are encouraged to apologise, return any property/money and complete community service bringing them back into the community.\n(b) Positive role models: offenders observe the actions of pro-social role models so they can learn how to behave.",
   },
   {
-    id: "sleep", name: "Sleep & Dreaming", paper: 1, color: "#818cf8",
+    id: "sleep", name: "Sleep & Dreaming", paper: 2, color: "#818cf8",
     keyDebates: ["Nature (brain processes) vs. Nurture (past experiences)", "Reductionism (focused on narrow view of brain activity)", "Subjective (Freud) vs. Objective (based on brain scans)"],
     keyConcepts: [
-      { term: "Functions of Sleep", def: "a) Physical repair to return the body to a normal, healthy state. b) Emotional stability (feeling normal and psychologically healthy). c) Instinctive and necessary for survival (evolved behaviour) — keeps us safe at night." },
+      { term: "Functions of Sleep", def: "a) Physical repair to return the body to a normal, healthy state. b) Emotional stability. c) Instinctive and necessary for survival — keeps us safe at night." },
       { term: "Sleep Cycle", def: "Stage 1: 10%, Stage 2: 50%, Stage 3: 10%, Stage 4: 10%, Rapid Eye Movement (REM): 20%." },
-      { term: "Neuropsychology of Sleep", def: "Endogenous pacemakers: internal biological clocks — manage circadian rhythms (e.g. Suprachiasmatic nucleus). Exogenous Zeitgebers: features of the environment that manage circadian rhythms (e.g. light). Hypothalamus: controls key bodily functions. Melatonin: hormone that induces sleep. Released by the pineal gland." },
+      { term: "Neuropsychology of Sleep", def: "Endogenous pacemakers: internal biological clocks — manage circadian rhythms (e.g. SCN). Exogenous Zeitgebers: features of the environment (e.g. light). Melatonin: hormone that induces sleep, released by the pineal gland." },
     ],
     sections: [
-      { title: "Activation Synthesis Theory of Dreaming", content: `The theory suggests that dreams are a result of our mind trying to make sense of brain activation during sleep.\n\nNeuronal Activity Increases in the Pons: During REM sleep, body is paralysed, but activity increases in area of brainstem called the pons — random brain waves are generated.\n\nBrain Waves Travel to Cerebral Cortex: Higher brain areas in the cerebral cortex that would normally interpret sensory information. The information is treated as if it was real sensory information.\n\nSynthesis Occurs — Making Sense of Random Signals: Through interpreting the stimulation synthesis occurs; using stored memories to make sense of the information.\n\nRole of the Limbic System: Because the brain waves activate many different brain areas such as the limbic system (which controls emotions) the resulting dreams are bizarre & emotional. So the theory suggests that dreams have no real meaning.\n\nLimitations:\n- Too reductionist — suggests that dreams are a random result of happens when the mind tries to make sense of brain activity that occurs during sleep.\n- The theory is quite a simplistic view and ignores the view that dreams can be meaningful, it is further reductionist as it does not explain the purpose of dreams, just where they come from.\n- Doesn't explain how people with damage to brainstem can still dream.` },
-      { title: "Freudian Theory of Dreaming", content: `The theory suggests that the mind is like an iceberg; it consists of our conscious mind and unconscious mind (we are normally unable to access it).\n\nUnconscious Mind: Contains unacceptable thoughts, feelings and desires that our conscious mind cannot deal with & are considered unacceptable in society. Freud suggested this part of our personality is the ID & is repressed by another part of our personality called the ego.\n\nDreams allow us to access the unconscious mind.\n\nWish Fulfilment: In sleep the ego is weakened & the unconscious mind tries to break through into our consciousness. In order to satisfy these unconscious desires we dream, this is known as wish fulfilment (e.g. being able to eat all the icecream you want).\n\nContent of Dreams: True content of our dreams are hidden through the use of symbols which do not disturb us. So dreams will have two types of content:\nManifest content — what we actually see in our dreams — disguises the latent content through symbolism.\nLatent content — which is the true meaning of our dreams (e.g. being afraid of failing at something).\n\nLimitations:\n- Highly subjective — dream interpretation is dependent on person's opinion.\n- Difficult to test as based on unreliable research where Freud alone conducted interviews & interpreted the dreams of participants.\n- Based on studies that have cultural and historical bias.` },
+      { title: "Activation Synthesis Theory of Dreaming", content: `The theory suggests that dreams are a result of our mind trying to make sense of brain activation during sleep.\n\nNeuronal Activity Increases in the Pons: During REM sleep, body is paralysed, but activity increases in area of brainstem called the pons — random brain waves are generated.\n\nBrain Waves Travel to Cerebral Cortex: Higher brain areas in the cerebral cortex that would normally interpret sensory information. The information is treated as if it was real sensory information.\n\nSynthesis Occurs — Making Sense of Random Signals: Through interpreting the stimulation synthesis occurs; using stored memories to make sense of the information.\n\nRole of the Limbic System: Because the brain waves activate many different brain areas such as the limbic system (which controls emotions) the resulting dreams are bizarre & emotional. So the theory suggests that dreams have no real meaning.\n\nLimitations:\n- Too reductionist.\n- Ignores the view that dreams can be meaningful.\n- Doesn't explain how people with damage to brainstem can still dream.` },
+      { title: "Freudian Theory of Dreaming", content: `The theory suggests that the mind is like an iceberg; it consists of our conscious mind and unconscious mind.\n\nUnconscious Mind: Contains unacceptable thoughts, feelings and desires. Freud suggested this part of our personality is the ID & is repressed by the ego.\n\nWish Fulfilment: In sleep the ego is weakened & the unconscious mind tries to break through into our consciousness. In order to satisfy these unconscious desires we dream.\n\nContent of Dreams:\nManifest content — what we actually see in our dreams — disguises the latent content through symbolism.\nLatent content — the true meaning of our dreams.\n\nLimitations:\n- Highly subjective — dream interpretation is dependent on person's opinion.\n- Difficult to test as based on unreliable research.\n- Based on studies that have cultural and historical bias.` },
     ],
     studies: [
-      { name: "Williams et al. (1992) — Bizarreness of Dreams & Fantasies", aim: "To see if bizarreness of dreams is different to the bizarreness of daytime fantasies.", sample: "12 biopsychology students from Harvard University, aged 23 to 45.", method: "Natural experiment and self-report journal entries.", procedure: "a) Participants kept a journal for a term recording any dreams they could recall & any day dreams they experienced. b) Researchers selected 60 dreams & 60 day dreams. c) 3 different judges scored for bizarreness (inter-rater reliability).", findings: "Dreams were found to be a lot more bizarre than daytime fantasies (day dreams). There were good levels of inter-rater reliability between the judges (88.7% similar scores). Dreams scored higher than fantasies for: plot discontinuity (greatest difference), plot incongruity, uncertainty, and thought incongruity. The bizarreness of dreams is due to the brain activity during REM sleep.", limitations: "Sample too small & gender biased (10 females) — cannot be generalised. Social desirability — self-report so participants may have lied about/changed their dreams/fantasies." },
-      { name: "Freud's (1918) Dream Analysis of 'The Wolfman'", aim: "To see if dream analysis could help treat psychological problems by releasing repressed memories.", sample: "One Russian male in his 20s, suffering from depression.", method: "Longitudinal case study (4 years).", procedure: "The man, known as 'The Wolfman', was interviewed over 4 years. He was thought to suffer from depression after his father & sister had both committed suicide. Freud reported a dream where he woke up and saw 6 or 7 white wolves sitting in a walnut tree outside his bedroom window staring at him.", findings: "1) The wolves represented fear because he had seen a 'primal scene' of his parents having sex. Freud also said the wolves represented fear of his father who he was scared would castrate him. 2) Also thought as the dream was around Christmas, the wolves could represent pleasure, like Christmas presents. Dreams can represent repressed thoughts which hide in the unconscious according to Freud.", limitations: "Sample too small & culturally biased (unrepresentative & can't be generalised). Study too subjective — based only on Freud's interpretations." },
+      { name: "Williams et al. (1992) — Bizarreness of Dreams & Fantasies", aim: "To see if bizarreness of dreams is different to the bizarreness of daytime fantasies.", sample: "12 biopsychology students from Harvard University, aged 23 to 45.", method: "Natural experiment and self-report journal entries.", procedure: "a) Participants kept a journal for a term recording any dreams & any day dreams. b) Researchers selected 60 dreams & 60 day dreams. c) 3 different judges scored for bizarreness (inter-rater reliability).", findings: "Dreams were found to be a lot more bizarre than daytime fantasies. Inter-rater reliability 88.7%. Dreams scored higher for: plot discontinuity (greatest difference), plot incongruity, uncertainty, and thought incongruity.", limitations: "Sample too small & gender biased — cannot be generalised. Social desirability — self-report so participants may have lied." },
+      { name: "Freud's (1918) Dream Analysis of 'The Wolfman'", aim: "To see if dream analysis could help treat psychological problems by releasing repressed memories.", sample: "One Russian male in his 20s, suffering from depression.", method: "Longitudinal case study (4 years).", procedure: "The man, known as 'The Wolfman', was interviewed over 4 years. He reported a dream where he saw 6 or 7 white wolves sitting in a walnut tree outside his bedroom window.", findings: "The wolves represented fear of his father who he was scared would castrate him. Also possibly represented pleasure (like Christmas presents). Dreams can represent repressed thoughts in the unconscious.", limitations: "Sample too small & culturally biased. Study too subjective — based only on Freud's interpretations." },
     ],
-    applications: "Impact of Neurological Damage on Sleep:\nUnderstanding Insomnia: a) damage to the hypothalamus can occur after surgery, trauma or disease. The SCN is part of the hypothalamus — damage to this can lead to insomnia. b) damage to the pineal gland (regulates melatonin production), can also lead to insomnia.\n\nWays to Improve on Sleep Problems:\n1) Relaxation techniques — Clearing the mind/winding down concerns (to reduce anxiety & worry) AND deep breathing & relieving tension in body through visualisation. Balances the nervous system by calming the sympathetic nervous system & supporting the parasympathetic nervous system to do its job.\n\n2) Sleep Hygiene — make changes to health (diet/exercise/coffee etc.) and physical environment to promote sleep: reduce light/electronic equipment (light-block melatonin production), regulate temperature, comfortable bedding, bedroom decluttered & clocks faces turned away.",
+    applications: "Impact of Neurological Damage on Sleep:\nDamage to the hypothalamus (contains SCN) can lead to insomnia. Damage to the pineal gland disrupts melatonin production, also causing insomnia.\n\nWays to Improve Sleep Problems:\n1) Relaxation techniques — clearing the mind, deep breathing, visualisation. Calms the sympathetic nervous system.\n2) Sleep Hygiene — reduce light/electronics (light blocks melatonin), regulate temperature, comfortable bedding, bedroom decluttered.",
   },
 ];
 
@@ -158,42 +179,129 @@ const FLASHCARDS = [
   { q: "What are the THREE stores in the Multi-Store Model of Memory?", a: "Sensory store, Short-Term Memory (STM) and Long-Term Memory (LTM).", topic: "Memory" },
   { q: "What is the capacity and duration of STM?", a: "Capacity: 7±2 items. Duration: approximately 30 seconds.", topic: "Memory" },
   { q: "What is confabulation?", a: "Making up details to fill in the blanks in a memory — 'honest lying'.", topic: "Memory" },
-  { q: "Name the three personality traits in Eysenck's Criminal Personality Theory.", a: "Extraversion, Neuroticism and Psychoticism.", topic: "Criminal Psychology" },
-  { q: "What is the Agentic State according to Agency Theory?", a: "When we do not feel responsible as we are acting under orders from an authority figure.", topic: "Social Influence" },
-  { q: "What does 'internalisation' mean in the context of conformity?", a: "The majority opinion has led you to genuinely change your own opinion.", topic: "Social Influence" },
-  { q: "What is vicarious reinforcement in Social Learning Theory?", a: "A role model is observed being rewarded for their criminality — making it more likely the behaviour will be imitated.", topic: "Criminal Psychology" },
-  { q: "Describe Piaget's Concrete Operational Stage.", a: "Ages 7–11. Children develop the ability to decentrate, conserve, and understand that properties of objects remain the same even when changed in appearance.", topic: "Development" },
-  { q: "What is a Growth Mindset according to Dweck?", a: "The belief that intelligence can be developed through experiences, hard work and learning.", topic: "Development" },
-  { q: "What is the Dopamine Hypothesis in relation to schizophrenia?", a: "The dopamine system is overactive — high levels of dopamine binding to receptors causes schizophrenia symptoms.", topic: "Psychological Problems" },
-  { q: "According to Freud, what is the 'manifest content' of a dream?", a: "What we actually see in our dreams — it disguises the true (latent) content through symbolism.", topic: "Sleep & Dreaming" },
-  { q: "What is the function of the Suprachiasmatic Nucleus (SCN)?", a: "An endogenous pacemaker — an internal biological clock that manages circadian rhythms.", topic: "Sleep & Dreaming" },
-  { q: "What did Bickman (1974) find about uniform and obedience?", a: "Guard = 89% obeyed, Milkman = 57% obeyed, Civilian = 33% obeyed. The higher the perceived status of the uniform, the higher the obedience.", topic: "Social Influence" },
+  { q: "What is a schema?", a: "A mental representation of an object or situation that influences how we encode and recall memories.", topic: "Memory" },
+  { q: "What is elaborative rehearsal?", a: "Giving meaning to information in STM to help transfer it into LTM — more effective than maintenance rehearsal.", topic: "Memory" },
+  { q: "What is maintenance rehearsal?", a: "Repeating information in STM to prevent it from decaying. Less effective than elaborative rehearsal for long-term storage.", topic: "Memory" },
+  { q: "What did Braun et al. (2002) find about autobiographical advertising?", a: "Watching an advert (e.g. Disney/Bugs Bunny) significantly increased false confidence scores in participants' autobiographical memories. Adverts can alter how people remember the past.", topic: "Memory" },
+  { q: "What is anterograde amnesia?", a: "The inability to form new memories, caused by damage to the hippocampus.", topic: "Memory" },
+  { q: "What is retrograde amnesia?", a: "The inability to recall existing memories, caused by damage to the frontal lobe.", topic: "Memory" },
+  { q: "What role does the hippocampus play in memory?", a: "Information must pass through the hippocampus before entering long-term storage. It is particularly important for semantic and autobiographical memories.", topic: "Memory" },
+  { q: "What role does the cerebellum play in memory?", a: "It is responsible for learning movements and procedural memory (motor skills).", topic: "Memory" },
+  { q: "What is the Wechsler Memory Scale used for?", a: "To evaluate the extent of brain damage in patients — results on 5 aspects: auditory, visual, visual working, immediate and delayed memory.", topic: "Memory" },
+  { q: "Name two limitations of the Multi-Store Model of Memory.", a: "1) Over-emphasises the importance of rehearsal. 2) Reductionist — not supported by neuropsychological evidence as LTM is more than one store.", topic: "Memory" },
+  { q: "What is a leading question and how does it affect memory?", a: "A question that suggests a particular answer. Leading questions can manipulate people's memories through suggestion, distorting recall.", topic: "Memory" },
+  { q: "What are the symptoms of schizophrenia?", a: "Hallucinations, thought disturbances, disorganised speech, catatonic behaviour, and delusions (errors in reality).", topic: "Psychological Problems" },
   { q: "What is the ABC Model of depression?", a: "Activating event → irrational Beliefs → negative Consequences. Ellis argued 'B' is most important.", topic: "Psychological Problems" },
-  { q: "What did Clive Wearing's case demonstrate about memory?", a: "Brain damage (to the hippocampus) can cause both anterograde and retrograde amnesia. Procedural memory remained intact.", topic: "Memory" },
-  { q: "What are the two stages of dream content according to Freud?", a: "Manifest content (what we see in the dream) and Latent content (the true hidden meaning).", topic: "Sleep & Dreaming" },
+  { q: "What is the Dopamine Hypothesis in relation to schizophrenia?", a: "The dopamine system is overactive — high levels of dopamine binding to receptors causes schizophrenia symptoms.", topic: "Psychological Problems" },
   { q: "What is the Social Drift Theory of schizophrenia?", a: "The 'label' of schizophrenia leads to stigma → discrimination → withdrawal from society → rejection → worsening of mental health.", topic: "Psychological Problems" },
-  { q: "What did Heaven (1996) find about psychoticism and delinquency?", a: "There was a positive correlation between psychoticism and delinquency at both Time 1 and Time 2.", topic: "Criminal Psychology" },
+  { q: "What is the Social Rank Theory of depression?", a: "Depression occurs when we lose social status; it allows us to accept a subordinate role and reduces further conflict — rooted in evolutionary survival.", topic: "Psychological Problems" },
+  { q: "What did Tandoc et al. (2015) find about Facebook and depression?", a: "Heavy Facebook use led to stronger feelings of envy. Facebook envy (not Facebook use itself) was a predictor of depression. Sample was 736 journalism students.", topic: "Psychological Problems" },
+  { q: "What did Daniels et al. (1991) find about amphetamines and schizophrenia?", a: "Amphetamines increased the ability of the prefrontal cortex to focus on the WCST (Card Sort task) in schizophrenic patients.", topic: "Psychological Problems" },
+  { q: "What is the Mental Health Continuum?", a: "Healthy → Mild Disruption → Moderate Disruption → Severe Disruption.", topic: "Psychological Problems" },
+  { q: "How do anti-psychotic drugs treat schizophrenia?", a: "They block dopamine receptors, reducing the level of dopamine and thereby reducing the effects of the psychotic episode.", topic: "Psychological Problems" },
+  { q: "How does CBT treat depression using the ABC model?", a: "D = Disputing (questioning) irrational beliefs. E = Effect of changing the interpretation of an event. CBT helps the person confront negative thoughts and change their behaviour.", topic: "Psychological Problems" },
+  { q: "What is the difference between compliance and internalisation?", a: "Compliance = conforming outwardly to gain approval but privately disagreeing. Internalisation = genuinely changing your own opinion to match the majority.", topic: "Social Influence" },
+  { q: "What is the difference between the autonomous state and the agentic state?", a: "Autonomous = feel responsible for own actions. Agentic = do not feel responsible, acting under orders from authority figure.", topic: "Social Influence" },
+  { q: "What did Bickman (1974) find about uniform and obedience?", a: "Guard = 89% obeyed, Milkman = 57%, Civilian = 33%. The higher the perceived status of the uniform, the higher the obedience.", topic: "Social Influence" },
+  { q: "What is deindividuation?", a: "When individuals become part of a faceless group in crowds, take on the collective behaviour of the crowd and do not think about the consequences of their actions.", topic: "Social Influence" },
+  { q: "What is the Authoritarian Personality (Adorno, 1950)?", a: "A person who has high levels of respect for authority, sees the world in black and white, and dislikes those they consider inferior — more likely to obey.", topic: "Social Influence" },
+  { q: "What did NatCen (Morrell et al., 2011) find about the Tottenham Riots?", a: "Four types of involvement: watchers, rioters, looters, non-involved. Both dispositional and situational 'nudge' and 'tug' factors influenced involvement.", topic: "Social Influence" },
+  { q: "What is locus of control (LOC)?", a: "High internal LOC = believe behaviour is caused by own efforts. High external LOC = believe behaviour is due to luck/external factors. External LOC = more likely to obey and conform.", topic: "Social Influence" },
+  { q: "How does hippocampal volume relate to conformity?", a: "Self-esteem and internal LOC are correlated with hippocampal volume. A smaller hippocampus = lower self-esteem = more likely to conform to a group.", topic: "Social Influence" },
+  { q: "What are the two types of culture and how do they relate to pro/anti-social behaviour?", a: "Individualist culture (personal goals) → more anti-social. Collectivist culture (community needs) → more pro-social.", topic: "Social Influence" },
+  { q: "What is object permanence?", a: "The ability to understand that objects exist even when they are not visually present. Develops at the end of the sensori-motor stage (around 2 years).", topic: "Development" },
+  { q: "What is egocentrism in Piaget's theory?", a: "The inability to see the world from another person's point of view. Characteristic of the pre-operational stage (2–7 years).", topic: "Development" },
+  { q: "What is conservation in Piaget's theory?", a: "The ability to understand that properties of objects remain the same even when their appearance changes. Develops in the concrete-operational stage (7–11 years).", topic: "Development" },
+  { q: "What is animism?", a: "Treating inanimate objects as if they are alive. Shown in the pre-operational stage (2–7 years).", topic: "Development" },
+  { q: "What is a Growth Mindset according to Dweck?", a: "The belief that intelligence can be developed through experiences, hard work and learning.", topic: "Development" },
+  { q: "What is a Fixed Mindset according to Dweck?", a: "The belief that intelligence is predefined and innate. People with a fixed mindset fear failure as it reflects badly on their natural abilities.", topic: "Development" },
+  { q: "What did Blackwell et al. (2007) Study 2 find about growth mindset?", a: "Teaching a growth mindset intervention had a positive impact on maths achievement. GM students were more motivated and got better grades than the control group.", topic: "Development" },
+  { q: "What does Willingham argue about learning styles?", a: "There is no evidence that learning styles exist. Learning occurs through meaning, not styles — most information to be learned is meaning-based.", topic: "Development" },
+  { q: "What did Piaget (1952) find in the conservation of number study?", a: "Children in the concrete operational stage (7+) could conserve and explain why. Younger pre-operational children said the spread out row had more counters.", topic: "Development" },
+  { q: "What happens to the brain during adolescence (13–19)?", a: "Grey matter reaches maximum density, and there is maturation of the limbic system, prefrontal cortex and frontal lobes.", topic: "Development" },
+  { q: "Name the three personality traits in Eysenck's Criminal Personality Theory.", a: "Extraversion (E), Neuroticism (N) and Psychoticism (P).", topic: "Criminal Psychology" },
+  { q: "What is vicarious reinforcement in Social Learning Theory?", a: "A role model is observed being rewarded for their criminality — making it more likely the behaviour will be imitated.", topic: "Criminal Psychology" },
+  { q: "What is direct reinforcement in Social Learning Theory?", a: "The observer themselves engages in a criminal act and receives a reward, making it likely they will continue the behaviour.", topic: "Criminal Psychology" },
+  { q: "What is internalisation in Social Learning Theory?", a: "The behaviour becomes part of the individual and no longer needs to be reinforced — they repeat the behaviour despite consequences.", topic: "Criminal Psychology" },
+  { q: "What did Heaven (1996) find about psychoticism and delinquency?", a: "There was a positive correlation between psychoticism and delinquency at both Time 1 and Time 2. Males were more delinquent than females.", topic: "Criminal Psychology" },
+  { q: "What did Cooper & Mackie (1986) find about video games and aggression?", a: "Children who played aggressive games spent longer playing with aggressive toys. The effect was stronger in girls. Type of game had no effect on interpersonal aggression.", topic: "Criminal Psychology" },
+  { q: "What brain mechanism explains high Extraversion scores in Eysenck's theory?", a: "Extroverts have a low level of arousal in the cerebral cortex (stimuli restricted by RAS), so they need more stimulation, leading to risky and anti-social behaviour.", topic: "Criminal Psychology" },
+  { q: "What is restorative justice?", a: "The victim meets the criminal; the offender takes responsibility, faces consequences, apologises, returns property/money and completes community service — reintegrating into society.", topic: "Criminal Psychology" },
+  { q: "According to Freud, what is the 'manifest content' of a dream?", a: "What we actually see in our dreams — it disguises the true (latent) content through symbolism.", topic: "Sleep & Dreaming" },
+  { q: "According to Freud, what is the 'latent content' of a dream?", a: "The true hidden meaning of the dream — the repressed unconscious desires that the manifest content disguises.", topic: "Sleep & Dreaming" },
+  { q: "What is the function of the Suprachiasmatic Nucleus (SCN)?", a: "An endogenous pacemaker — an internal biological clock that manages circadian rhythms.", topic: "Sleep & Dreaming" },
+  { q: "What is wish fulfilment in Freud's theory of dreaming?", a: "In sleep the ego is weakened, allowing the unconscious mind to break through. We dream to satisfy unconscious desires.", topic: "Sleep & Dreaming" },
+  { q: "What role does the pons play in the Activation Synthesis Theory?", a: "During REM sleep, neuronal activity increases in the pons (area of brainstem), generating random brain waves that travel to the cerebral cortex.", topic: "Sleep & Dreaming" },
+  { q: "What did Williams et al. (1992) find about bizarreness of dreams?", a: "Dreams were significantly more bizarre than daytime fantasies. Inter-rater reliability was 88.7%. Greatest difference was in plot discontinuity.", topic: "Sleep & Dreaming" },
+  { q: "What are endogenous pacemakers?", a: "Internal biological clocks that manage circadian rhythms (e.g. the Suprachiasmatic Nucleus).", topic: "Sleep & Dreaming" },
+  { q: "What are exogenous zeitgebers?", a: "Features of the environment that manage circadian rhythms, for example light.", topic: "Sleep & Dreaming" },
+  { q: "How can damage to the hypothalamus or pineal gland cause insomnia?", a: "The SCN is part of the hypothalamus — damage disrupts circadian rhythms causing insomnia. Damage to the pineal gland disrupts melatonin production, also leading to insomnia.", topic: "Sleep & Dreaming" },
+  { q: "How does sleep hygiene help with sleep problems?", a: "Reducing light/electronics (light blocks melatonin production), regulating temperature, comfortable bedding, decluttering the bedroom and turning clocks away all promote sleep.", topic: "Sleep & Dreaming" },
+  { q: "What are the five stages of the sleep cycle and their percentages?", a: "Stage 1: 10%, Stage 2: 50%, Stage 3: 10%, Stage 4: 10%, REM: 20%.", topic: "Sleep & Dreaming" },
+  { q: "What case did Freud (1918) analyse and what were the key conclusions?", a: "'The Wolfman' — a Russian male with depression. The wolves in his dream represented repressed fears. Dreams can represent repressed thoughts hidden in the unconscious.", topic: "Sleep & Dreaming" },
 ];
 
 const EXAM_QUESTIONS = [
   { q: "Describe the Multi-Store Model of Memory.", marks: 4, topic: "Memory", command: "Describe", hint: "Include: three stores (sensory, STM, LTM), capacity and duration of STM, the role of rehearsal in transferring to LTM.", paper: 2 },
   { q: "Explain what is meant by 'confabulation'. Use an example in your answer.", marks: 3, topic: "Memory", command: "Explain", hint: "Define confabulation as filling in gaps in memory ('honest lying'), then give an example such as misremembering details of a past event.", paper: 2 },
   { q: "Identify and describe ONE limitation of Braun et al.'s (2002) study into adverts and memory.", marks: 3, topic: "Memory", command: "Identify & Describe", hint: "Choose: sample bias (USA undergrads only) OR lacks ecological validity (lab experiment).", paper: 2 },
+  { q: "Explain what is meant by a 'schema' and how it affects memory recall.", marks: 3, topic: "Memory", command: "Explain", hint: "Define schema as a mental representation of an object/situation. Explain how schemas cause us to fill in gaps and distort memories to fit prior expectations.", paper: 2 },
+  { q: "Describe the Theory of Reconstructive Memory.", marks: 4, topic: "Memory", command: "Describe", hint: "Cover: schemas, prior experiences, expectations, leading questions, confabulation. Memory is never entirely accurate — we reconstruct it.", paper: 2 },
+  { q: "Describe the aim, method and findings of Wilson et al.'s (2008) study of Clive Wearing.", marks: 6, topic: "Memory", command: "Describe", hint: "Aim: report on severe amnesia case. Method: longitudinal case study, MRI, IQ tests, interviews. Findings: hippocampus damaged, both anterograde & retrograde amnesia, procedural memory intact.", paper: 2 },
+  { q: "Evaluate the Multi-Store Model of Memory.", marks: 6, topic: "Memory", command: "Evaluate", hint: "Strengths: supported by case studies (Clive Wearing — procedural memory intact). Weaknesses: reductionist, over-emphasises rehearsal, LTM is not a single store.", paper: 2 },
+  { q: "Using your knowledge of memory, explain how advertisers use psychological techniques to make their adverts more memorable.", marks: 4, topic: "Memory", command: "Apply", hint: "Cues (triggers recall), repetition (prevents decay), avoiding overload (prevents displacement from STM), autobiographical advertising (connects emotionally to past).", paper: 2 },
+  { q: "Explain the difference between anterograde and retrograde amnesia.", marks: 3, topic: "Memory", command: "Explain", hint: "Anterograde: inability to form NEW memories (hippocampus damage). Retrograde: inability to recall EXISTING memories (frontal lobe damage). Link to Clive Wearing.", paper: 2 },
+  { q: "Identify ONE strength of the Theory of Reconstructive Memory and explain why it is a strength.", marks: 3, topic: "Memory", command: "Identify & Explain", hint: "Strength: explains real-world memory errors e.g. eyewitness testimony unreliability. Supports why leading questions distort recall. Has practical application in the justice system.", paper: 2 },
   { q: "Describe the symptoms of schizophrenia.", marks: 4, topic: "Psychological Problems", command: "Describe", hint: "Include at least 4: hallucinations, thought disturbances, disorganised speech, catatonic behaviour, delusions.", paper: 1 },
   { q: "Explain the ABC Model of depression.", marks: 4, topic: "Psychological Problems", command: "Explain", hint: "A = Activating event, B = irrational Beliefs (most important), C = negative Consequences. Mention Ellis.", paper: 1 },
   { q: "Evaluate the biological theory of schizophrenia.", marks: 6, topic: "Psychological Problems", command: "Evaluate", hint: "Strengths: supported by drug treatments (anti-psychotics reduce dopamine). Weaknesses: reductionist, ignores nurture (upbringing/life events), correlation not causation.", paper: 1 },
+  { q: "Describe the Social Drift Theory of schizophrenia.", marks: 4, topic: "Psychological Problems", command: "Describe", hint: "Label → stigma → discrimination → withdrawal from society → rejection → further deterioration of mental health.", paper: 1 },
+  { q: "Describe the Social Rank Theory of depression.", marks: 4, topic: "Psychological Problems", command: "Describe", hint: "Evolutionary — losing social status → depressed state. Depression allows acceptance of a subordinate role and reduces further conflict/risk to survival.", paper: 1 },
+  { q: "Evaluate the ABC Model as an explanation for depression.", marks: 6, topic: "Psychological Problems", command: "Evaluate", hint: "Strengths: CBT based on it is effective. Weaknesses: ignores biological/nature factors (brain chemistry), puts full responsibility on patient (free will issue), too reductionist.", paper: 1 },
+  { q: "Describe the aim, sample, method and findings of Tandoc et al. (2015).", marks: 6, topic: "Psychological Problems", command: "Describe", hint: "Aim: does FB use predict depression? Sample: 736 journalism students (68% female). Method: online questionnaire. Findings: FB envy (not FB use directly) predicted depression.", paper: 1 },
+  { q: "Explain how anti-depressant drugs and anti-psychotic drugs are used to treat psychological problems.", marks: 4, topic: "Psychological Problems", command: "Explain", hint: "Anti-depressants: increase serotonin/noradrenaline → neurons communicate better → less depressed. Anti-psychotics: block dopamine receptors → reduce dopamine levels → reduce psychotic episode.", paper: 1 },
+  { q: "Explain what is meant by CBT and how it can be used to treat depression.", marks: 4, topic: "Psychological Problems", command: "Explain", hint: "CBT = Cognitive Behavioural Therapy. Uses Ellis' ABC model: D = Disputing irrational beliefs, E = Effect of changing interpretation. Aims to change how individual thinks and behaves.", paper: 1 },
+  { q: "Identify ONE limitation of Daniels et al.'s (1991) study into amphetamines and schizophrenia.", marks: 2, topic: "Psychological Problems", command: "Identify", hint: "Sample too small (10 participants — can't generalise) OR culturally biased OR ethical issues (brain scans for research not medical reasons).", paper: 1 },
+  { q: "Explain the difference between the autonomous state and the agentic state.", marks: 3, topic: "Social Influence", command: "Explain", hint: "Autonomous = feel responsible for own actions. Agentic = do not feel responsible, acting under orders from authority.", paper: 2 },
+  { q: "Describe the findings and conclusions of Bickman's (1974) study.", marks: 4, topic: "Social Influence", command: "Describe", hint: "State the obedience levels for each uniform: Guard 89%, Milkman 57%, Civilian 33%. Conclude: higher perceived status = higher obedience.", paper: 2 },
+  { q: "Evaluate the dispositional explanation for obedience.", marks: 6, topic: "Social Influence", command: "Evaluate", hint: "Strengths: Milgram's variations support LOC. Weaknesses: reductionist, ignores situational factors, LOC varies across situations, too deterministic.", paper: 2 },
+  { q: "Explain how deindividuation can lead to anti-social behaviour in crowds.", marks: 4, topic: "Social Influence", command: "Explain", hint: "Individuals become part of a faceless crowd → take on collective behaviour → don't think about consequences → anti-social acts. Link to individualist vs collectivist cultures.", paper: 2 },
+  { q: "Describe the aim, method, findings and one limitation of NatCen (Morrell et al., 2011).", marks: 6, topic: "Social Influence", command: "Describe", hint: "Aim: why did young people join the riots? Method: interviews. Findings: 4 types of involvement; nudge/tug dispositional & situational factors. Limitation: social desirability in interviews.", paper: 2 },
+  { q: "Explain the difference between compliance and internalisation.", marks: 3, topic: "Social Influence", command: "Explain", hint: "Compliance = outwardly conform to gain approval but privately disagree. Internalisation = genuinely change own opinion to match majority view.", paper: 2 },
+  { q: "Explain how dispositional factors such as locus of control affect obedience.", marks: 4, topic: "Social Influence", command: "Explain", hint: "External LOC = believe events are due to luck/outside factors → more likely to obey/conform. Internal LOC = believe in own control → less likely to conform. Link to hippocampal volume and self-esteem.", paper: 2 },
+  { q: "Describe TWO ways in which minority influence could be used to reduce mental health stigma.", marks: 4, topic: "Social Influence", command: "Describe", hint: "Use consistent, clear messages; commitment to the minority view; flexibility (not too radical); identification (peer to peer delivery). Choose two and explain each.", paper: 2 },
+  { q: "Evaluate the situational explanation for obedience.", marks: 6, topic: "Social Influence", command: "Evaluate", hint: "Strengths: supported by Milgram's study (agentic state). Weaknesses: ignores dispositional factors (authoritarian personality, LOC), ignores free will, some people resist authority.", paper: 2 },
+  { q: "Explain how the brain influences conformity, with reference to the prefrontal cortex and hippocampus.", marks: 4, topic: "Social Influence", command: "Explain", hint: "Hippocampal volume correlated with self-esteem and internal LOC → small hippocampus = low self-esteem = more conformity. PFC damage = lack of empathy, anti-social behaviour, poor moral decisions.", paper: 2 },
+  { q: "Describe Piaget's Sensori-Motor and Pre-Operational stages of development.", marks: 4, topic: "Development", command: "Describe", hint: "Sensori-Motor (0–2): senses, motor movement, object permanence. Pre-Operational (2–7): egocentric, animism, lack of reversibility.", paper: 1 },
+  { q: "Explain Willingham's theory of learning. Why does he reject learning styles?", marks: 4, topic: "Development", command: "Explain", hint: "Students differ in ability/interests, not learning styles. Learning is meaning-based. Most info is not visual or auditory.", paper: 1 },
+  { q: "Identify ONE limitation of Piaget's (1952) study into conservation of number.", marks: 2, topic: "Development", command: "Identify", hint: "Sample bias (Swiss children only — can't generalise) OR design flaw (asked same question twice — demand characteristics).", paper: 1 },
+  { q: "Describe Piaget's Concrete-Operational and Formal Operational stages.", marks: 4, topic: "Development", command: "Describe", hint: "Concrete-Operational (7–11): decentrate, conserve, linguistic humour, cannot think abstractly. Formal Operational (11+): test hypotheses, formal logic, solve abstract problems.", paper: 1 },
+  { q: "Evaluate Piaget's Theory of Cognitive Development.", marks: 6, topic: "Development", command: "Evaluate", hint: "Strengths: provided basis for education key stages; research support from conservation study. Weaknesses: reductionist (ignores environment), stages too universal/invariant (cross-cultural evidence), asked same question twice (invalid).", paper: 1 },
+  { q: "Describe the aim, sample, method and findings of Blackwell et al. (2007).", marks: 6, topic: "Development", command: "Describe", hint: "Aim: impact of growth mindset on maths. Sample: 373/99 NY students. Method: correlation + field experiment. Findings: growth mindset predicted maths results; intervention improved grades and motivation.", paper: 1 },
+  { q: "Explain how Piaget's theory has been applied to education.", marks: 4, topic: "Development", command: "Explain", hint: "Readiness for questioning — questions must match developmental stage. Readiness for Key Stages — Piaget's stages linked to KS1/2/3/4. Children need learning experiences appropriate to their stage.", paper: 1 },
+  { q: "Explain the difference between a growth mindset and a fixed mindset.", marks: 4, topic: "Development", command: "Explain", hint: "Growth: intelligence can be developed through effort/experience. Fixed: intelligence is innate/predefined. Fixed mindset individuals fear failure as it reflects on their natural ability.", paper: 1 },
+  { q: "Explain how praise for effort can influence children's mindset and achievement.", marks: 3, topic: "Development", command: "Explain", hint: "Teachers/parents who praise effort (not attainment/intelligence) develop a growth mindset in children → love of learning → seek to improve → try new things → better achievement.", paper: 1 },
+  { q: "Identify ONE limitation of Blackwell et al.'s (2007) study.", marks: 2, topic: "Development", command: "Identify", hint: "Culturally biased (NY students only, cannot be generalised) OR reductionist (only focuses on student mindset, ignores influence of others).", paper: 1 },
   { q: "Describe Eysenck's Criminal Personality Theory.", marks: 4, topic: "Criminal Psychology", command: "Describe", hint: "Cover all three traits: Extraversion (E), Neuroticism (N), Psychoticism (P) with brain explanations for each.", paper: 1 },
   { q: "Explain how vicarious reinforcement can lead to criminal behaviour.", marks: 3, topic: "Criminal Psychology", command: "Explain", hint: "Define vicarious reinforcement → role model rewarded → observer more likely to imitate the behaviour.", paper: 1 },
   { q: "Describe and evaluate Heaven's (1996) study into delinquency.", marks: 6, topic: "Criminal Psychology", command: "Describe & Evaluate", hint: "AO1: aim, sample, method, findings. AO3: culturally biased, self-report (social desirability), longitudinal strength.", paper: 1 },
-  { q: "Explain the difference between the autonomous state and the agentic state.", marks: 3, topic: "Social Influence", command: "Explain", hint: "Autonomous = feel responsible for own actions. Agentic = do not feel responsible, acting under orders from authority.", paper: 2 },
-  { q: "Describe the findings and conclusions of Bickman's (1974) study.", marks: 4, topic: "Social Influence", command: "Describe", hint: "State the obedience levels for each uniform: Guard 89%, Milkman 57%, Civilian 33%. Conclude: higher perceived status = higher obedience.", paper: 2 },
-  { q: "Evaluate the dispositional explanation for obedience.", marks: 6, topic: "Social Influence", command: "Evaluate", hint: "Strengths: Milgram's variations support. Weaknesses: reductionist, ignores situational factors, LOC varies across situations.", paper: 2 },
-  { q: "Describe Piaget's Sensori-Motor and Pre-Operational stages of development.", marks: 4, topic: "Development", command: "Describe", hint: "Sensori-Motor (0–2): senses, motor movement, object permanence. Pre-Operational (2–7): egocentric, animism, lack of reversibility.", paper: 2 },
-  { q: "Explain Willingham's theory of learning. Why does he reject learning styles?", marks: 4, topic: "Development", command: "Explain", hint: "Students differ in ability/interests, not learning styles. Learning is meaning-based. Most info is not visual or auditory.", paper: 2 },
-  { q: "Identify ONE limitation of Piaget's (1952) study into conservation of number.", marks: 2, topic: "Development", command: "Identify", hint: "Sample bias (Swiss children only — can't generalise) OR design flaw (asked same question twice — demand characteristics).", paper: 2 },
-  { q: "Describe the Activation Synthesis Theory of dreaming.", marks: 4, topic: "Sleep & Dreaming", command: "Describe", hint: "REM sleep → pons generates random waves → travel to cerebral cortex → synthesis makes sense of signals using stored memories → limbic system → bizarre/emotional dreams.", paper: 1 },
-  { q: "Compare the Activation Synthesis Theory and Freud's Theory of dreaming.", marks: 6, topic: "Sleep & Dreaming", command: "Compare", hint: "Both explain dreams but differ on meaning. Activation Synthesis = no real meaning (random). Freud = dreams meaningful, reveal unconscious desires. Activation Synthesis = objective/scientific. Freud = subjective.", paper: 1 },
-  { q: "Identify and explain ONE way to improve sleep problems.", marks: 3, topic: "Sleep & Dreaming", command: "Identify & Explain", hint: "Either: relaxation techniques (calms sympathetic nervous system) OR sleep hygiene (reduce light/electronics to allow melatonin production).", paper: 1 },
+  { q: "Evaluate the Social Learning Theory as an explanation for criminal behaviour.", marks: 6, topic: "Criminal Psychology", command: "Evaluate", hint: "Strengths: Cooper & Mackie (1986) support, explains role of media. Weaknesses: ignores nature (brain/genetics), doesn't explain first-wave criminals, ignores individual differences.", paper: 1 },
+  { q: "Explain the role of identification and observation in Social Learning Theory.", marks: 4, topic: "Criminal Psychology", command: "Explain", hint: "Identification: children look up to role models and want to be like them. Observation: watching a criminal act creates a mental representation → more likely to imitate.", paper: 1 },
+  { q: "Explain how punishment can be used to reduce anti-social behaviour.", marks: 4, topic: "Criminal Psychology", command: "Explain", hint: "Prisons (remove freedom), fines (remove financial incentive), community sentences (give back to society), deterrent (see others suffer negative consequences).", paper: 1 },
+  { q: "Describe the brain explanation for high Neuroticism scores in Eysenck's theory.", marks: 2, topic: "Criminal Psychology", command: "Describe", hint: "High N = ANS becomes over-aroused → affects the limbic system → causes violent and unstable behaviour.", paper: 1 },
+  { q: "Describe and evaluate Cooper & Mackie's (1986) study into video games and aggression.", marks: 6, topic: "Criminal Psychology", command: "Describe & Evaluate", hint: "AO1: aim, sample, method, findings (girls more affected, no effect on interpersonal aggression). AO3: culturally biased, lacks ecological validity (lab), demand characteristics.", paper: 1 },
+  { q: "Explain how restorative justice promotes pro-social behaviour.", marks: 3, topic: "Criminal Psychology", command: "Explain", hint: "Victim meets offender → offender takes responsibility → apologises, returns property, does community service → re-integrated into community. Reduces reoffending.", paper: 1 },
+  { q: "Evaluate Eysenck's Criminal Personality Theory.", marks: 6, topic: "Criminal Psychology", command: "Evaluate", hint: "Strengths: Heaven (1996) supports link between psychoticism and delinquency. Weaknesses: ignores individual differences, too deterministic (ignores free will), only identifies traits — doesn't explain WHY people offend.", paper: 1 },
+  { q: "Describe the Activation Synthesis Theory of dreaming.", marks: 4, topic: "Sleep & Dreaming", command: "Describe", hint: "REM sleep → pons generates random waves → travel to cerebral cortex → synthesis makes sense of signals using stored memories → limbic system → bizarre/emotional dreams.", paper: 2 },
+  { q: "Compare the Activation Synthesis Theory and Freud's Theory of dreaming.", marks: 6, topic: "Sleep & Dreaming", command: "Compare", hint: "Both explain dreams but differ on meaning. Activation Synthesis = no real meaning (random). Freud = dreams meaningful, reveal unconscious desires. Activation Synthesis = objective. Freud = subjective.", paper: 2 },
+  { q: "Identify and explain ONE way to improve sleep problems.", marks: 3, topic: "Sleep & Dreaming", command: "Identify & Explain", hint: "Either: relaxation techniques (calms sympathetic nervous system) OR sleep hygiene (reduce light/electronics to allow melatonin production).", paper: 2 },
+  { q: "Describe Freud's Theory of Dreaming, including manifest and latent content.", marks: 4, topic: "Sleep & Dreaming", command: "Describe", hint: "Mind = iceberg: conscious + unconscious. ID repressed by ego. Wish fulfilment. Manifest = what we see (symbolism). Latent = true hidden meaning.", paper: 2 },
+  { q: "Evaluate Freud's Theory of Dreaming.", marks: 6, topic: "Sleep & Dreaming", command: "Evaluate", hint: "Weaknesses: highly subjective, difficult to test scientifically, cultural/historical bias, small sample. Strength: introduced idea that unconscious influences behaviour.", paper: 2 },
+  { q: "Describe the neuropsychology of sleep, including the role of the hypothalamus and pineal gland.", marks: 4, topic: "Sleep & Dreaming", command: "Describe", hint: "Hypothalamus contains SCN (endogenous pacemaker — manages circadian rhythms). Pineal gland releases melatonin (hormone that induces sleep). Light acts as an exogenous zeitgeber.", paper: 2 },
+  { q: "Describe the aim, method, findings and one limitation of Williams et al. (1992).", marks: 6, topic: "Sleep & Dreaming", command: "Describe", hint: "Aim: are dreams more bizarre than daytime fantasies? Method: self-report journals, inter-rater reliability. Findings: dreams significantly more bizarre (greatest difference: plot discontinuity, 88.7% reliability). Limitation: small/gender-biased sample.", paper: 2 },
+  { q: "Explain how neurological damage can lead to insomnia.", marks: 3, topic: "Sleep & Dreaming", command: "Explain", hint: "SCN is part of hypothalamus — damage disrupts circadian rhythms → insomnia. Damage to pineal gland disrupts melatonin production → difficulty inducing sleep.", paper: 2 },
+  { q: "Evaluate the Activation Synthesis Theory of dreaming.", marks: 6, topic: "Sleep & Dreaming", command: "Evaluate", hint: "Strengths: scientific/objective (based on brain scans), supported by Williams et al. Weaknesses: reductionist, doesn't explain purpose of dreams, doesn't explain why people with brainstem damage can still dream.", paper: 2 },
+  { q: "Explain the role of endogenous pacemakers and exogenous zeitgebers in regulating sleep.", marks: 4, topic: "Sleep & Dreaming", command: "Explain", hint: "Endogenous pacemakers = internal clocks e.g. SCN in hypothalamus. Exogenous zeitgebers = external cues e.g. light — block/stimulate melatonin production via pineal gland.", paper: 2 },
 ];
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
@@ -214,9 +322,9 @@ const s = {
   label: { color: C.purple, fontSize: 11, fontWeight: 700, textTransform: "uppercase", marginBottom: 3 },
   sel: { background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, padding: "0.4rem 0.75rem", fontSize: 13, cursor: "pointer" },
   ta: { width: "100%", minHeight: 110, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, padding: "0.7rem", fontSize: 14, resize: "vertical", boxSizing: "border-box" },
+  inp: { width: "100%", background: "#0f0f13", border: `1px solid #2a2a3a`, borderRadius: 8, color: C.text, padding: "0.65rem 0.85rem", fontSize: 14, boxSizing: "border-box", outline: "none" },
 };
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
 function Para({ text }) {
   return text.split("\n\n").map((p, i) => (
     <p key={i} style={{ color: "#d1d5db", lineHeight: 1.75, marginBottom: "0.875rem", fontSize: 14 }}>
@@ -257,11 +365,178 @@ function PaperTable({ paper }) {
   );
 }
 
-// ─── PAGES ───────────────────────────────────────────────────────────────────
-function Home({ go }) {
+// ─── SIGN UP FLOW ─────────────────────────────────────────────────────────────
+function SignUp({ onDone }) {
+  const [step, setStep] = useState(0); // 0=landing, 1=account, 2=year, 3=grades, 4=done
+  const [form, setForm] = useState({ email: "", password: "", name: "", year: "", current: "", target: "" });
+  const [animIn, setAnimIn] = useState(true);
+
+  const next = (s) => { setAnimIn(false); setTimeout(() => { setStep(s); setAnimIn(true); }, 300); };
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const GRADES = ["U", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  const gradeColors = { 9: "#6ee7b7", 8: "#6ee7b7", 7: "#a78bfa", 6: "#a78bfa", 5: "#60a5fa", 4: "#fbbf24", 3: "#fb923c", 2: "#f87171", 1: "#f87171", U: "#6b7280" };
+
+  const animStyle = { transition: "all 0.3s ease", opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(20px)" };
+
+  if (step === 0) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <FloatingStars />
+      <style>{`
+        @keyframes glow { 0%,100%{text-shadow:0 0 20px #a78bfa88,0 0 40px #7C3AED44} 50%{text-shadow:0 0 40px #a78bfacc,0 0 80px #7C3AED88} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes orb { 0%,100%{transform:translate(0,0)} 33%{transform:translate(30px,-20px)} 66%{transform:translate(-20px,10px)} }
+      `}</style>
+      <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, #7C3AED11 0%, transparent 70%)", animation: "orb 8s ease-in-out infinite", top: "10%", left: "10%" }} />
+      <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, #60a5fa08 0%, transparent 70%)", animation: "orb 12s ease-in-out infinite reverse", bottom: "10%", right: "10%" }} />
+      <div style={{ position: "relative", zIndex: 1, animation: "fadeUp 0.8s ease forwards" }}>
+        <div style={{ fontSize: 60, marginBottom: 16, animation: "pulse 3s ease-in-out infinite" }}>🧠</div>
+        <h1 style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 900, color: "#fff", animation: "glow 3s ease-in-out infinite", marginBottom: 8 }}>PsychRevise</h1>
+        <p style={{ color: C.purple, fontSize: 14, letterSpacing: 4, textTransform: "uppercase", marginBottom: 32 }}>OCR GCSE Psychology</p>
+        <div style={{ width: 60, height: 2, background: `linear-gradient(90deg, transparent, ${C.purple}, transparent)`, margin: "0 auto 32px", boxShadow: `0 0 10px ${C.purple}` }} />
+        <p style={{ color: C.muted, fontSize: 15, marginBottom: 40, maxWidth: 400, lineHeight: 1.7 }}>Your complete revision companion for OCR GCSE Psychology. Topics, flashcards, exam questions & past papers — all in one place.</p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <button style={{ ...s.btn(), padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10, boxShadow: `0 0 20px #7C3AED44`, animation: "pulse 2s ease-in-out infinite" }} onClick={() => next(1)}>Get Started →</button>
+          <button style={{ ...s.obtn, padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10 }} onClick={() => onDone({ name: "Guest", year: "11", current: "?", target: "9" })}>Continue as Guest</button>
+        </div>
+        <p style={{ color: C.dim, fontSize: 11, marginTop: 48, letterSpacing: 2 }}>MADE BY Z41N</p>
+      </div>
+    </div>
+  );
+
+  if (step === 1) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <FloatingStars />
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div style={{ ...animStyle, width: "100%", maxWidth: 440, position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+          <h2 style={{ color: C.bright, fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Create your account</h2>
+          <p style={{ color: C.muted, fontSize: 13 }}>Step 1 of 3</p>
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 12 }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ width: 32, height: 4, borderRadius: 2, background: i === 1 ? C.purple : C.border }} />)}
+          </div>
+        </div>
+        <div style={s.card}>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ ...s.label, marginBottom: 6 }}>Your Name</div>
+            <input style={s.inp} placeholder="e.g. Alex" value={form.name} onChange={e => set("name", e.target.value)} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ ...s.label, marginBottom: 6 }}>Email</div>
+            <input style={s.inp} type="email" placeholder="you@school.com" value={form.email} onChange={e => set("email", e.target.value)} />
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ ...s.label, marginBottom: 6 }}>Password</div>
+            <input style={s.inp} type="password" placeholder="••••••••" value={form.password} onChange={e => set("password", e.target.value)} />
+          </div>
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => form.name && form.email ? next(2) : null}>Continue →</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === 2) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <FloatingStars />
+      <div style={{ ...animStyle, width: "100%", maxWidth: 500, position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>📚</div>
+          <h2 style={{ color: C.bright, fontSize: 22, fontWeight: 700, marginBottom: 6 }}>What year are you in?</h2>
+          <p style={{ color: C.muted, fontSize: 13 }}>Step 2 of 3</p>
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 12 }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ width: 32, height: 4, borderRadius: 2, background: i <= 2 ? C.purple : C.border }} />)}
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {["Year 10", "Year 11"].map(y => (
+            <div key={y} onClick={() => { set("year", y); next(3); }} style={{ ...s.card, cursor: "pointer", textAlign: "center", border: `2px solid ${form.year === y ? C.purple : C.border}`, background: form.year === y ? C.purpleDim : C.card, transition: "all 0.2s", padding: "2rem 1rem" }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>{y === "Year 10" ? "📖" : "🎯"}</div>
+              <div style={{ fontWeight: 700, color: C.bright, fontSize: 18 }}>{y}</div>
+              <div style={{ color: C.muted, fontSize: 12, marginTop: 4 }}>{y === "Year 10" ? "Starting the journey" : "Exam year — let's go!"}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === 3) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <FloatingStars />
+      <div style={{ ...animStyle, width: "100%", maxWidth: 500, position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
+          <h2 style={{ color: C.bright, fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Set your grades</h2>
+          <p style={{ color: C.muted, fontSize: 13 }}>Step 3 of 3 — Don't worry, PsychRevise will help you get there!</p>
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 12 }}>
+            {[1, 2, 3].map(i => <div key={i} style={{ width: 32, height: 4, borderRadius: 2, background: C.purple }} />)}
+          </div>
+        </div>
+        <div style={s.card}>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ ...s.label, marginBottom: 10 }}>Current Grade</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {GRADES.map(g => (
+                <button key={g} onClick={() => set("current", g)} style={{ width: 44, height: 44, borderRadius: 8, border: `2px solid ${form.current === g ? (gradeColors[g] || C.purple) : C.border}`, background: form.current === g ? (gradeColors[g] || C.purple) + "22" : "transparent", color: form.current === g ? (gradeColors[g] || C.purple) : C.muted, fontWeight: 700, cursor: "pointer", fontSize: 15, transition: "all 0.15s" }}>{g}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ ...s.label, marginBottom: 10 }}>Target Grade</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {GRADES.map(g => (
+                <button key={g} onClick={() => set("target", g)} style={{ width: 44, height: 44, borderRadius: 8, border: `2px solid ${form.target === g ? (gradeColors[g] || C.purple) : C.border}`, background: form.target === g ? (gradeColors[g] || C.purple) + "22" : "transparent", color: form.target === g ? (gradeColors[g] || C.purple) : C.muted, fontWeight: 700, cursor: "pointer", fontSize: 15, transition: "all 0.15s" }}>{g}</button>
+              ))}
+            </div>
+          </div>
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => form.current && form.target ? next(4) : null}>Let's go! 🚀</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === 4) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center" }}>
+      <FloatingStars />
+      <style>{`
+        @keyframes popIn{0%{transform:scale(0) rotate(-180deg);opacity:0}60%{transform:scale(1.2) rotate(10deg)}100%{transform:scale(1) rotate(0deg);opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+      `}</style>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ fontSize: 80, animation: "popIn 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards", display: "inline-block", marginBottom: 24 }}>🎉</div>
+        <h1 style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 900, background: "linear-gradient(135deg, #a78bfa, #60a5fa, #6ee7b7)", backgroundSize: "200%", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "shimmer 3s ease infinite", marginBottom: 12 }}>
+          Welcome, {form.name || "Student"}! 👋
+        </h1>
+        <div style={{ animation: "slideUp 0.6s ease 0.3s both" }}>
+          <p style={{ color: C.muted, fontSize: 15, marginBottom: 24, lineHeight: 1.8 }}>
+            {form.year} · Currently a <span style={{ color: C.amber, fontWeight: 700 }}>{form.current}</span> · Aiming for a <span style={{ color: C.green, fontWeight: 700 }}>{form.target}</span>
+          </p>
+          <div style={{ background: "linear-gradient(135deg, #1a1228, #0f1a2e)", border: `1px solid ${C.purpleBorder}`, borderRadius: 16, padding: "1.5rem 2rem", marginBottom: 32, maxWidth: 440, margin: "0 auto 32px" }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>💜</div>
+            <p style={{ color: C.purple, fontWeight: 600, fontSize: 15, lineHeight: 1.7 }}>
+              Don't worry — <strong style={{ color: "#fff" }}>PsychRevise</strong> will help you get from {form.current} to {form.target}. You've got this! 🧠✨
+            </p>
+          </div>
+          <button style={{ ...s.btn(), padding: "0.85rem 2.5rem", fontSize: 15, borderRadius: 12, boxShadow: "0 0 30px #7C3AED44" }} onClick={() => onDone(form)}>
+            Start Revising →
+          </button>
+          <p style={{ color: C.dim, fontSize: 11, marginTop: 40, letterSpacing: 2 }}>MADE BY Z41N</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+// ─── PAGES ────────────────────────────────────────────────────────────────────
+function Home({ go, user }) {
   return (
     <div>
-      {/* Countdown banner */}
       <div style={{ background: "#1a1228", border: `1px solid ${C.purpleBorder}`, borderRadius: 12, padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
         <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>UPCOMING EXAM DATES — OCR GCSE PSYCHOLOGY</div>
         <div style={s.grid(200)}>
@@ -274,17 +549,19 @@ function Home({ go }) {
           ))}
         </div>
       </div>
-
-      <h1 style={s.h1}>OCR GCSE Psychology Revision Hub</h1>
-      <p style={{ color: C.muted, fontSize: 14, marginBottom: "1.5rem" }}>All topics from your knowledge organisers — Criminal Psychology, Development, Psychological Problems, Sleep & Dreaming, Memory, Social Influence.</p>
-
+      <h1 style={s.h1}>Welcome back{user?.name ? `, ${user.name}` : ""}! 👋</h1>
+      <p style={{ color: C.muted, fontSize: 14, marginBottom: "1.5rem" }}>
+        {user?.year && <span style={{ color: C.purple, fontWeight: 600 }}>{user.year} · </span>}
+        {user?.current && <span>Currently: <strong style={{ color: C.amber }}>{user.current}</strong> → Target: <strong style={{ color: C.green }}>{user.target}</strong> · </span>}
+        All topics from your knowledge organisers.
+      </p>
       <div style={s.grid(160)}>
         {[
           { icon: "📚", label: "Topics", sub: "6 topic areas with full notes", page: "Topics" },
           { icon: "🔬", label: "Key Studies", sub: "All studies with A·M·R·E", page: "Studies" },
-          { icon: "🃏", label: "Flashcards", sub: "18 cards to test yourself", page: "Flashcards" },
-          { icon: "📝", label: "Exam Questions", sub: "Exam-style Qs with mark schemes", page: "Exam" },
-          { icon: "📄", label: "Past Papers", sub: "Every year from PMT", page: "Papers" },
+          { icon: "🃏", label: "Flashcards", sub: `${FLASHCARDS.length} cards to test yourself`, page: "Flashcards" },
+          { icon: "📝", label: "Exam Questions", sub: `${EXAM_QUESTIONS.length} exam-style Qs`, page: "Exam" },
+          { icon: "📄", label: "Past Papers", sub: "PDFs + mark tracker + grade log", page: "Papers" },
         ].map(item => (
           <div key={item.label} style={{ ...s.card, cursor: "pointer" }} onClick={() => go(item.page)}>
             <div style={{ fontSize: 26, marginBottom: 6 }}>{item.icon}</div>
@@ -293,7 +570,6 @@ function Home({ go }) {
           </div>
         ))}
       </div>
-
       <div style={{ ...s.card, marginTop: "1rem", background: "#1a1228", border: `1px solid ${C.purpleBorder}` }}>
         <div style={{ color: C.purple, fontWeight: 600, marginBottom: 8, fontSize: 13 }}>TOPICS COVERED</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -309,6 +585,7 @@ function Home({ go }) {
 function Topics() {
   const [sel, setSel] = useState(null);
   const [tab, setTab] = useState(0);
+
   if (!sel) return (
     <div>
       <h1 style={s.h1}>Topics</h1>
@@ -335,7 +612,7 @@ function Topics() {
         <div style={{ color: C.muted, fontSize: 13 }}>Key debates: {sel.keyDebates.join(" | ")}</div>
       </div>
       <div style={{ display: "flex", gap: 6, marginBottom: "1rem" }}>
-        {tabs.map((t, i) => <button key={t} style={{ ...s.nb(tab === i), padding: "0.5rem 1rem", borderRadius: 8, border: `1px solid ${tab === i ? sel.color : C.border}`, color: tab === i ? sel.color : C.muted, background: tab === i ? sel.color + "22" : "transparent", fontSize: 13, cursor: "pointer", fontWeight: tab === i ? 600 : 400 }} onClick={() => setTab(i)}>{t}</button>)}
+        {tabs.map((t, i) => <button key={t} style={{ padding: "0.5rem 1rem", borderRadius: 8, border: `1px solid ${tab === i ? sel.color : C.border}`, color: tab === i ? sel.color : C.muted, background: tab === i ? sel.color + "22" : "transparent", fontSize: 13, cursor: "pointer", fontWeight: tab === i ? 600 : 400 }} onClick={() => setTab(i)}>{t}</button>)}
       </div>
       {tab === 0 && sel.sections.map(sec => (
         <div key={sec.title} style={s.card}>
@@ -360,8 +637,16 @@ function Topics() {
 
 function Studies() {
   const [filter, setFilter] = useState("All");
-  const all = TOPICS.flatMap(t => t.studies.map(st => ({ ...st, topic: t.name, color: t.color })));
+  const all = TOPICS.flatMap(t => {
+    return t.studies.flatMap(st => {
+      if (st.isMultiStudy) {
+        return [{ ...st, topic: t.name, color: t.color, _multi: true }];
+      }
+      return [{ ...st, topic: t.name, color: t.color }];
+    });
+  });
   const shown = filter === "All" ? all : all.filter(s => s.topic === filter);
+
   return (
     <div>
       <h1 style={s.h1}>Key Studies</h1>
@@ -370,20 +655,41 @@ function Studies() {
           <button key={f} style={{ ...s.obtn, background: filter === f ? "#7C3AED22" : "transparent", color: filter === f ? C.purple : C.muted, fontSize: 12 }} onClick={() => setFilter(f)}>{f}</button>
         ))}
       </div>
-      {shown.map((st, i) => (
-        <div key={i} style={{ ...s.card, borderLeft: `4px solid ${st.color}` }}>
-          <span style={s.pill(st.color)}>{st.topic}</span>
-          <h2 style={s.h2}>{st.name}</h2>
-          <div style={s.grid(200)}>
-            {[["AIM", st.aim], ["SAMPLE", st.sample], ["METHOD", st.method], ["PROCEDURE", st.procedure], ["FINDINGS & CONCLUSION", st.findings], ["LIMITATIONS", st.limitations]].map(([lbl, val]) => (
-              <div key={lbl} style={{ gridColumn: ["PROCEDURE", "FINDINGS & CONCLUSION", "LIMITATIONS"].includes(lbl) ? "span 2" : "span 1" }}>
-                <div style={s.label}>{lbl}</div>
-                <div style={{ color: "#d1d5db", fontSize: 13, lineHeight: 1.65 }}>{val}</div>
-              </div>
-            ))}
+      {shown.map((st, i) => {
+        if (st._multi) return (
+          <div key={i} style={{ ...s.card, borderLeft: `4px solid ${st.color}` }}>
+            <span style={s.pill(st.color)}>{st.topic}</span>
+            <h2 style={s.h2}>{st.name}</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14 }}>
+              {st.studies.map((sub, j) => (
+                <div key={j} style={{ background: "#0f0f13", border: `1px solid ${st.color}44`, borderRadius: 10, padding: "1rem" }}>
+                  <div style={{ color: st.color, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>{sub.label}</div>
+                  {[["AIM", sub.aim], ["SAMPLE", sub.sample], ["METHOD", sub.method], ["PROCEDURE", sub.procedure], ["FINDINGS", sub.findings], ["LIMITATIONS", sub.limitations]].map(([lbl, val]) => (
+                    <div key={lbl} style={{ marginBottom: 8 }}>
+                      <div style={s.label}>{lbl}</div>
+                      <div style={{ color: "#d1d5db", fontSize: 12, lineHeight: 1.65 }}>{val}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+        return (
+          <div key={i} style={{ ...s.card, borderLeft: `4px solid ${st.color}` }}>
+            <span style={s.pill(st.color)}>{st.topic}</span>
+            <h2 style={s.h2}>{st.name}</h2>
+            <div style={s.grid(200)}>
+              {[["AIM", st.aim], ["SAMPLE", st.sample], ["METHOD", st.method], ["PROCEDURE", st.procedure], ["FINDINGS & CONCLUSION", st.findings], ["LIMITATIONS", st.limitations]].map(([lbl, val]) => (
+                <div key={lbl} style={{ gridColumn: ["PROCEDURE", "FINDINGS & CONCLUSION", "LIMITATIONS"].includes(lbl) ? "span 2" : "span 1" }}>
+                  <div style={s.label}>{lbl}</div>
+                  <div style={{ color: "#d1d5db", fontSize: 13, lineHeight: 1.65 }}>{val}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -438,6 +744,7 @@ function Exam() {
   const [ans, setAns] = useState("");
   const [showHint, setShowHint] = useState(false);
   const [showMS, setShowMS] = useState(false);
+  const [answered, setAnswered] = useState({});
 
   const qs = EXAM_QUESTIONS.filter(q =>
     (filter === "All" || q.topic === filter) &&
@@ -445,14 +752,26 @@ function Exam() {
   );
   const cur = qs[idx % Math.max(qs.length, 1)];
   const topics = ["All", ...new Set(EXAM_QUESTIONS.map(q => q.topic))];
-
   const reset = () => { setAns(""); setShowHint(false); setShowMS(false); };
+  const answeredCount = Object.keys(answered).length;
+  const totalQ = EXAM_QUESTIONS.length;
+  const progressPct = Math.round((answeredCount / totalQ) * 100);
 
-  if (!cur) return <div style={s.main}><h1 style={s.h1}>Exam Questions</h1><p style={s.muted}>No questions match the current filters.</p></div>;
+  if (!cur) return <div><h1 style={s.h1}>Exam Questions</h1><p style={s.muted}>No questions match.</p></div>;
 
   return (
     <div>
       <h1 style={s.h1}>Exam Questions</h1>
+      {/* Purple progress bar */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ color: C.muted, fontSize: 12 }}>Overall Progress</span>
+          <span style={{ color: C.purple, fontWeight: 700, fontSize: 12 }}>{answeredCount}/{totalQ} answered ({progressPct}%)</span>
+        </div>
+        <div style={{ height: 8, background: C.border, borderRadius: 99, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${progressPct}%`, background: `linear-gradient(90deg, #7C3AED, #a78bfa)`, borderRadius: 99, transition: "width 0.4s ease", boxShadow: "0 0 8px #7C3AED88" }} />
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "1rem", alignItems: "center" }}>
         <select style={s.sel} value={filter} onChange={e => { setFilter(e.target.value); setIdx(0); reset(); }}>
           {topics.map(t => <option key={t} value={t}>{t}</option>)}
@@ -464,13 +783,13 @@ function Exam() {
         </select>
         <span style={s.muted}>{qs.length} questions</span>
       </div>
-
       <div style={s.card}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <span style={s.pill("#a78bfa")}>{cur.topic}</span>
             <span style={{ background: C.border, color: C.muted, borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>Paper {cur.paper}</span>
             <span style={{ background: "#7C3AED22", color: C.purple, borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>{cur.command}</span>
+            {answered[`${filter}-${idx}`] && <span style={{ background: "#0f1f1822", color: C.green, borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>✓ Answered</span>}
           </div>
           <span style={{ background: "#7C3AED44", color: C.purple, borderRadius: 8, padding: "3px 12px", fontSize: 14, fontWeight: 700 }}>{cur.marks} marks</span>
         </div>
@@ -479,176 +798,255 @@ function Exam() {
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
           <button style={s.obtn} onClick={() => setShowHint(h => !h)}>{showHint ? "Hide hint" : "Show hint"}</button>
           <button style={s.obtn} onClick={() => setShowMS(m => !m)}>{showMS ? "Hide mark scheme" : "Show mark scheme"}</button>
+          {ans.trim() && <button style={{ ...s.btn("#059669"), fontSize: 12 }} onClick={() => { setAnswered(a => ({ ...a, [`${filter}-${idx}`]: true })); }}>✓ Mark as done</button>}
           <button style={{ ...s.btn(), marginLeft: "auto" }} onClick={() => { setIdx(i => (i + 1) % qs.length); reset(); }}>Next →</button>
         </div>
         {showHint && <div style={{ marginTop: 10, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, borderRadius: 8, padding: "0.75rem", color: C.purple, fontSize: 13, lineHeight: 1.6 }}><strong>Hint:</strong> {cur.hint}</div>}
-        {showMS && <div style={{ marginTop: 10, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 8, padding: "0.75rem", color: C.green, fontSize: 13, lineHeight: 1.6 }}><strong>Mark scheme guidance ({cur.marks} marks):</strong> {cur.hint} — Use clear, separate points. {cur.marks >= 6 ? "For extended questions: AO1 (describe/outline) + AO2/AO3 (apply/evaluate). Write in paragraphs." : cur.marks >= 4 ? "Make sure each point is distinct. Avoid repetition." : "Keep concise — each mark = one distinct point."}</div>}
+        {showMS && <div style={{ marginTop: 10, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 8, padding: "0.75rem", color: C.green, fontSize: 13, lineHeight: 1.6 }}><strong>Mark scheme guidance ({cur.marks} marks):</strong> {cur.hint} — {cur.marks >= 6 ? "AO1 (describe/outline) + AO2/AO3 (apply/evaluate). Write in paragraphs." : cur.marks >= 4 ? "Each point must be distinct. Avoid repetition." : "Keep concise — each mark = one distinct point."}</div>}
       </div>
-
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
         {qs.map((q, i) => (
-          <button key={i} style={{ minWidth: 28, height: 28, borderRadius: 6, border: "none", background: i === idx % qs.length ? "#7C3AED" : C.border, color: i === idx % qs.length ? "#fff" : C.muted, cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "0 6px" }} onClick={() => { setIdx(i); reset(); }}>{i + 1}</button>
+          <button key={i} style={{ minWidth: 28, height: 28, borderRadius: 6, border: "none", background: i === idx % qs.length ? "#7C3AED" : answered[`${filter}-${i}`] ? "#05966944" : C.border, color: i === idx % qs.length ? "#fff" : answered[`${filter}-${i}`] ? C.green : C.muted, cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "0 6px" }} onClick={() => { setIdx(i); reset(); }}>{i + 1}</button>
         ))}
       </div>
     </div>
   );
 }
 
+// ─── PAST PAPERS + TRACKER ───────────────────────────────────────────────────
 function Papers() {
-  const [tab, setTab] = useState("Paper 1");
+  const [tab, setTab] = useState("links");
+  const [logs, setLogs] = useState(() => {
+    try { const s = localStorage.getItem("psychrevise_logs"); return s ? JSON.parse(s) : {}; } catch { return {}; }
+  });
+  const saveLogs = l => { setLogs(l); try { localStorage.setItem("psychrevise_logs", JSON.stringify(l)); } catch {} };
+
+  const [logForm, setLogForm] = useState({ year: PAPER_YEARS[6], p1: "", p2: "" });
+
+  const addLog = () => {
+    if (!logForm.p1 && !logForm.p2) return;
+    const p1 = Number(logForm.p1) || 0, p2 = Number(logForm.p2) || 0;
+    const total = p1 + p2;
+    const g1 = p1 ? getGrade(p1, BOUNDARIES_2025.p1.boundaries) : "-";
+    const g2 = p2 ? getGrade(p2, BOUNDARIES_2025.p2.boundaries) : "-";
+    const gTotal = total ? getGrade(total, BOUNDARIES_2025.overall.boundaries) : "-";
+    const newLogs = { ...logs, [logForm.year]: { p1, p2, total, g1, g2, gTotal, date: new Date().toLocaleDateString("en-GB") } };
+    saveLogs(newLogs);
+    setLogForm(f => ({ ...f, p1: "", p2: "" }));
+  };
+
+  const gradeColor = g => ({ 9: "#6ee7b7", 8: "#6ee7b7", 7: "#a78bfa", 6: "#a78bfa", 5: "#60a5fa", 4: C.amber, 3: "#fb923c", 2: C.red, 1: C.red, U: C.dim }[g] || C.muted);
+
   return (
     <div>
       <h1 style={s.h1}>Past Papers</h1>
-      <p style={{ color: C.muted, fontSize: 13, marginBottom: "1rem" }}>All past papers sourced from PMT (physicsandmathstutor.com). Click QP for the question paper and MS for the mark scheme.</p>
+      <div style={{ display: "flex", gap: 6, marginBottom: "1.25rem", flexWrap: "wrap" }}>
+        {[["links", "📄 Papers"], ["tracker", "📊 Mark Tracker"], ["boundaries", "🏆 Grade Boundaries"]].map(([id, label]) => (
+          <button key={id} style={{ ...s.obtn, background: tab === id ? "#7C3AED22" : "transparent", color: tab === id ? C.purple : C.muted, fontWeight: tab === id ? 700 : 400 }} onClick={() => setTab(id)}>{label}</button>
+        ))}
+      </div>
 
-      <div style={{ ...s.card, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, marginBottom: "1rem" }}>
-        <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>EXAM DATES 2026</div>
-        {EXAM_DATES.map(e => (
-          <div key={e.paper} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${C.border}22`, fontSize: 14 }}>
-            <span style={{ color: C.bright, fontWeight: 600 }}>{e.paper}</span>
-            <span style={{ color: C.muted }}>{e.date}</span>
-            <span style={{ color: e.days <= 14 ? C.red : C.amber, fontWeight: 700 }}>{e.days}d</span>
+      {tab === "links" && (
+        <div>
+          <p style={{ color: C.muted, fontSize: 13, marginBottom: "1rem" }}>All past papers sourced from PMT. Click QP for question paper, MS for mark scheme.</p>
+          <div style={{ ...s.card, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, marginBottom: "1rem" }}>
+            <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 8 }}>EXAM DATES 2026</div>
+            {EXAM_DATES.map(e => (
+              <div key={e.paper} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${C.border}22`, fontSize: 14 }}>
+                <span style={{ color: C.bright, fontWeight: 600 }}>{e.paper}</span>
+                <span style={{ color: C.muted }}>{e.date}</span>
+                <span style={{ color: e.days <= 14 ? C.red : C.amber, fontWeight: 700 }}>{e.days}d</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", gap: 6, marginBottom: "1rem" }}>
-        {["Paper 1", "Paper 2"].map(p => (
-          <button key={p} style={{ ...s.obtn, background: tab === p ? "#7C3AED22" : "transparent", color: tab === p ? C.purple : C.muted, fontWeight: tab === p ? 700 : 400 }} onClick={() => setTab(p)}>{p}</button>
-        ))}
-      </div>
-
-      <div style={s.card}>
-        <div style={{ color: C.purple, fontWeight: 600, fontSize: 13, marginBottom: 12 }}>
-          {tab === "Paper 1" ? "Paper 1: Psychological Problems · Criminal Psychology · Sleep & Dreaming" : "Paper 2: Memory · Development · Social Influence"}
+          {["Paper 1", "Paper 2"].map(p => (
+            <div key={p} style={s.card}>
+              <div style={{ color: C.purple, fontWeight: 600, fontSize: 13, marginBottom: 12 }}>
+                {p === "Paper 1" ? "Paper 1 (J203/01) — Psychological Problems · Criminal Psychology · Development" : "Paper 2 (J203/02) — Memory · Social Influence · Sleep & Dreaming"}
+              </div>
+              <PaperTable paper={p} />
+            </div>
+          ))}
         </div>
-        <PaperTable paper={tab} />
-      </div>
+      )}
+
+      {tab === "tracker" && (
+        <div>
+          <p style={{ color: C.muted, fontSize: 13, marginBottom: "1.25rem" }}>Log your scores after completing a past paper. Grades are calculated using 2025 OCR boundaries.</p>
+
+          {/* Log form */}
+          <div style={{ ...s.card, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, marginBottom: "1.5rem" }}>
+            <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 14 }}>+ LOG A PAPER</div>
+            <div style={s.grid(150)}>
+              <div>
+                <div style={{ ...s.label, marginBottom: 6 }}>Paper Year</div>
+                <select style={{ ...s.sel, width: "100%" }} value={logForm.year} onChange={e => setLogForm(f => ({ ...f, year: e.target.value }))}>
+                  {PAPER_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div>
+                <div style={{ ...s.label, marginBottom: 6 }}>Paper 1 Score /90</div>
+                <input style={{ ...s.inp }} type="number" min={0} max={90} placeholder="e.g. 67" value={logForm.p1} onChange={e => setLogForm(f => ({ ...f, p1: e.target.value }))} />
+              </div>
+              <div>
+                <div style={{ ...s.label, marginBottom: 6 }}>Paper 2 Score /90</div>
+                <input style={{ ...s.inp }} type="number" min={0} max={90} placeholder="e.g. 71" value={logForm.p2} onChange={e => setLogForm(f => ({ ...f, p2: e.target.value }))} />
+              </div>
+            </div>
+            <button style={{ ...s.btn(), marginTop: 14 }} onClick={addLog}>Save Score →</button>
+          </div>
+
+          {/* Logged results */}
+          {Object.keys(logs).length === 0 ? (
+            <div style={{ ...s.card, textAlign: "center", padding: "2rem", color: C.muted }}>No papers logged yet. Complete a past paper and log your score above!</div>
+          ) : (
+            <div>
+              <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>YOUR RESULTS</div>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                      {["Year", "P1 Score", "P1 Grade", "P2 Score", "P2 Grade", "Total /180", "Overall Grade", "Date", ""].map(h => (
+                        <th key={h} style={{ textAlign: "center", padding: "8px 10px", color: C.muted, fontWeight: 600 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(logs).sort(([a], [b]) => b.localeCompare(a)).map(([year, d]) => (
+                      <tr key={year} style={{ borderBottom: `1px solid ${C.border}22` }}>
+                        <td style={{ padding: "10px", color: C.bright, fontWeight: 600, textAlign: "center" }}>{year}</td>
+                        <td style={{ padding: "10px", textAlign: "center", color: C.text }}>{d.p1 || "—"}</td>
+                        <td style={{ padding: "10px", textAlign: "center" }}><span style={{ color: gradeColor(d.g1), fontWeight: 700, fontSize: 16 }}>{d.g1}</span></td>
+                        <td style={{ padding: "10px", textAlign: "center", color: C.text }}>{d.p2 || "—"}</td>
+                        <td style={{ padding: "10px", textAlign: "center" }}><span style={{ color: gradeColor(d.g2), fontWeight: 700, fontSize: 16 }}>{d.g2}</span></td>
+                        <td style={{ padding: "10px", textAlign: "center", color: C.text, fontWeight: 600 }}>{d.total || "—"}</td>
+                        <td style={{ padding: "10px", textAlign: "center" }}><span style={{ color: gradeColor(d.gTotal), fontWeight: 900, fontSize: 20 }}>{d.gTotal}</span></td>
+                        <td style={{ padding: "10px", textAlign: "center", color: C.dim, fontSize: 12 }}>{d.date}</td>
+                        <td style={{ padding: "10px", textAlign: "center" }}>
+                          <button onClick={() => { const n = { ...logs }; delete n[year]; saveLogs(n); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 14 }}>✕</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Progress trend */}
+              {Object.keys(logs).length >= 2 && (
+                <div style={{ ...s.card, marginTop: "1rem", background: "#0f1a0f", border: `1px solid ${C.greenBorder}` }}>
+                  <div style={{ color: C.green, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>📈 SCORE TREND</div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {Object.entries(logs).sort(([a], [b]) => a.localeCompare(b)).map(([y, d]) => (
+                      <div key={y} style={{ background: C.card, borderRadius: 8, padding: "8px 14px", textAlign: "center", border: `1px solid ${C.border}` }}>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>{y}</div>
+                        <div style={{ fontWeight: 900, fontSize: 22, color: gradeColor(d.gTotal) }}>{d.gTotal}</div>
+                        <div style={{ fontSize: 11, color: C.dim }}>{d.total}/180</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "boundaries" && (
+        <div>
+          <div style={{ ...s.card, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, marginBottom: "1rem" }}>
+            <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 4 }}>OCR GCSE PSYCHOLOGY J203 — JUNE 2025 GRADE BOUNDARIES</div>
+            <div style={{ color: C.muted, fontSize: 12, marginBottom: 14 }}>Source: OCR official grade boundaries document, June 2025 series</div>
+            {[
+              { label: "Paper 1 (J203/01) — Studies & Applications 1", max: 90, data: BOUNDARIES_2025.p1.boundaries, color: "#f87171" },
+              { label: "Paper 2 (J203/02) — Studies & Applications 2", max: 90, data: BOUNDARIES_2025.p2.boundaries, color: "#60a5fa" },
+              { label: "Overall (J203) — Combined", max: 180, data: BOUNDARIES_2025.overall.boundaries, color: C.purple },
+            ].map(({ label, max, data, color }) => (
+              <div key={label} style={{ marginBottom: 20 }}>
+                <div style={{ color, fontWeight: 600, fontSize: 13, marginBottom: 8 }}>{label} (Max: {max})</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {data.map(b => (
+                    <div key={b.g} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 14px", textAlign: "center", minWidth: 52 }}>
+                      <div style={{ fontWeight: 900, fontSize: 18, color: gradeColor(String(b.g)) }}>{b.g}</div>
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{b.m}+</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Year 10 / Year 11 context */}
+          <div style={{ ...s.grid(260) }}>
+            {[
+              { year: "Year 10", icon: "📖", msg: "Use these boundaries to understand what you're working towards. Don't stress — you have time to build up!", color: "#60a5fa" },
+              { year: "Year 11", icon: "🎯", msg: "These are the exact boundaries from 2025. Your actual 2026 boundaries may differ slightly but use these as your target!", color: "#6ee7b7" },
+            ].map(({ year, icon, msg, color }) => (
+              <div key={year} style={{ ...s.card, borderTop: `3px solid ${color}` }}>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>{icon}</div>
+                <div style={{ fontWeight: 700, color, marginBottom: 6 }}>{year}</div>
+                <div style={{ color: C.muted, fontSize: 13, lineHeight: 1.6 }}>{msg}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── NEW COMPONENT: FLOATING STARS (SLOW & ELEGANT) ──────────────────────────
+// ─── FLOATING STARS ───────────────────────────────────────────────────────────
 function FloatingStars() {
   const stars = Array.from({ length: 150 });
-  const shootingStars = Array.from({ length: 4 }); 
-  
+  const shootingStars = Array.from({ length: 4 });
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-      <style>
-        {`
-          @keyframes floatUp { 
-            0% { transform: translateY(100vh) scale(0); opacity: 0; } 
-            10% { opacity: 1; } 
-            90% { opacity: 1; } 
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; } 
-          }
-          @keyframes twinkle { 
-            0%, 100% { opacity: 0.3; transform: scale(0.8); } 
-            50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(167, 139, 250, 0.3); } 
-          }
-          @keyframes shoot { 
-            0% { transform: translate(120vw, -20vh) rotate(135deg); opacity: 1; } 
-            100% { transform: translate(-50vw, 150vh) rotate(135deg); opacity: 0; } 
-          }
-          .floating-star { 
-            position: absolute; 
-            background: #fff; 
-            border-radius: 50%; 
-            animation: floatUp linear infinite; 
-          }
-          .twinkle-layer { 
-            width: 100%; 
-            height: 100%; 
-            background: inherit; 
-            border-radius: inherit; 
-          }
-          .shooting-star { 
-            position: absolute; 
-            width: 100px; 
-            height: 1px; 
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 100%); 
-            border-radius: 50%; 
-            box-shadow: 2px 0 4px rgba(255,255,255,0.4); 
-            animation: shoot linear infinite; 
-          }
-        `}
-      </style>
-      
-      {/* Background Stars */}
+      <style>{`
+        @keyframes floatUp{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+        @keyframes twinkle{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.3);box-shadow:0 0 10px rgba(255,255,255,0.5),0 0 20px rgba(167,139,250,0.3)}}
+        @keyframes shoot{0%{transform:translate(120vw,-20vh) rotate(135deg);opacity:1}100%{transform:translate(-50vw,150vh) rotate(135deg);opacity:0}}
+        .floating-star{position:absolute;background:#fff;border-radius:50%;animation:floatUp linear infinite}
+        .twinkle-layer{width:100%;height:100%;background:inherit;border-radius:inherit}
+        .shooting-star{position:absolute;width:100px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.6) 100%);border-radius:50%;box-shadow:2px 0 4px rgba(255,255,255,0.4);animation:shoot linear infinite}
+      `}</style>
       {stars.map((_, i) => {
-        const size = Math.random() * 2.5 + 1; 
-        const left = Math.random() * 100;
-        const dur = Math.random() * 15 + 10; 
-        const del = Math.random() * 10;
-        const isTwinkling = Math.random() > 0.6; 
-        const twinkleDur = Math.random() * 4 + 2;
-        
+        const size = Math.random() * 2.5 + 1, left = Math.random() * 100, dur = Math.random() * 15 + 10, del = Math.random() * 10, isTwinkling = Math.random() > 0.6, twinkleDur = Math.random() * 4 + 2;
         return (
-          <div key={"star-"+i} className="floating-star" style={{
-            width: size + "px", height: size + "px", left: left + "vw",
-            animationDuration: dur + "s", animationDelay: del + "s",
-            opacity: isTwinkling ? 1 : (Math.random() * 0.5 + 0.3)
-          }}>
-            {isTwinkling && <div className="twinkle-layer" style={{ animation: "twinkle " + twinkleDur + "s ease-in-out infinite" }} />}
+          <div key={"s" + i} className="floating-star" style={{ width: size + "px", height: size + "px", left: left + "vw", animationDuration: dur + "s", animationDelay: del + "s", opacity: isTwinkling ? 1 : (Math.random() * 0.5 + 0.3) }}>
+            {isTwinkling && <div className="twinkle-layer" style={{ animation: `twinkle ${twinkleDur}s ease-in-out infinite` }} />}
           </div>
         );
       })}
-      
-      {/* Shooting Stars */}
-      {shootingStars.map((_, i) => {
-        const dur = Math.random() * 4 + 6; 
-        const del = Math.random() * 20 + i * 5; 
-        const topOffset = Math.random() * 80 - 40; 
-        
-        return (
-          <div key={"shoot-"+i} className="shooting-star" style={{
-            marginTop: topOffset + "vh",
-            animationDuration: dur + "s",
-            animationDelay: del + "s"
-          }} />
-        );
-      })}
+      {shootingStars.map((_, i) => (
+        <div key={"sh" + i} className="shooting-star" style={{ marginTop: (Math.random() * 80 - 40) + "vh", animationDuration: (Math.random() * 4 + 6) + "s", animationDelay: (Math.random() * 20 + i * 5) + "s" }} />
+      ))}
     </div>
   );
 }
 
-// ─── APP ─────────────────────────────────────────────────────────────────────
+// ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [user, setUser] = useState(null);
   const [page, setPage] = useState("Home");
   const [showStars, setShowStars] = useState(true);
-  
   const pages = ["Home", "Topics", "Studies", "Flashcards", "Exam", "Papers"];
   const labels = { Home: "Home", Topics: "Topics", Studies: "Key Studies", Flashcards: "Flashcards", Exam: "Exam Qs", Papers: "Past Papers" };
+
+  if (!user) return <SignUp onDone={u => setUser(u)} />;
 
   return (
     <div style={s.wrap}>
       {showStars && <FloatingStars />}
-      
       <div style={{ position: "relative", zIndex: 1 }}>
         <nav style={s.nav}>
           <span style={s.logo}>🧠 PsychRevise OCR</span>
           {pages.map(p => <button key={p} style={s.nb(page === p)} onClick={() => setPage(p)}>{labels[p]}</button>)}
-          
-          <button 
-            style={{ 
-              ...s.obtn, 
-              marginLeft: "auto", 
-              fontSize: 11, 
-              padding: "0.4rem 0.7rem", 
-              border: `1px solid ${C.purple}`, 
-              color: C.purple,
-              background: C.purpleDim,
-              boxShadow: `0 0 12px rgba(167, 139, 250, 0.4)`,
-              transition: "all 0.3s ease"
-            }} 
-            onClick={() => setShowStars(!showStars)}
-          >
+          <button style={{ ...s.obtn, marginLeft: "auto", fontSize: 11, padding: "0.4rem 0.7rem", border: `1px solid ${C.purple}`, color: C.purple, background: C.purpleDim, boxShadow: `0 0 12px rgba(167,139,250,0.4)` }} onClick={() => setShowStars(!showStars)}>
             {showStars ? "Turn stars Off if you cant focus" : "Turn stars On"}
           </button>
+          <button style={{ ...s.obtn, fontSize: 11, padding: "0.4rem 0.7rem" }} onClick={() => setUser(null)}>Sign Out</button>
         </nav>
         <main style={s.main}>
-          {page === "Home" && <Home go={setPage} />}
+          {page === "Home" && <Home go={setPage} user={user} />}
           {page === "Topics" && <Topics />}
           {page === "Studies" && <Studies />}
           {page === "Flashcards" && <Flashcards />}
