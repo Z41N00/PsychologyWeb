@@ -367,26 +367,27 @@ function PaperTable({ paper }) {
 
 // ─── SIGN UP FLOW ─────────────────────────────────────────────────────────────
 function SignUp({ onDone }) {
-  const [step, setStep] = useState(0); // 0=landing, 1=account, 2=year, 3=grades, 4=done
+  const [mode, setMode] = useState("landing"); // landing, login, signup steps
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState({ email: "", password: "", name: "", year: "", current: "", target: "" });
   const [animIn, setAnimIn] = useState(true);
+  const [error, setError] = useState("");
 
-  const next = (s) => { setAnimIn(false); setTimeout(() => { setStep(s); setAnimIn(true); }, 300); };
+  const next = (s) => { setError(""); setAnimIn(false); setTimeout(() => { setStep(s); setAnimIn(true); }, 300); };
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const GRADES = ["U", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   const gradeColors = { 9: "#6ee7b7", 8: "#6ee7b7", 7: "#a78bfa", 6: "#a78bfa", 5: "#60a5fa", 4: "#fbbf24", 3: "#fb923c", 2: "#f87171", 1: "#f87171", U: "#6b7280" };
-
   const animStyle = { transition: "all 0.3s ease", opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(20px)" };
 
-  if (step === 0) return (
+  // ── LANDING ──
+  if (mode === "landing") return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
       <FloatingStars />
       <style>{`
         @keyframes glow { 0%,100%{text-shadow:0 0 20px #a78bfa88,0 0 40px #7C3AED44} 50%{text-shadow:0 0 40px #a78bfacc,0 0 80px #7C3AED88} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes orb { 0%,100%{transform:translate(0,0)} 33%{transform:translate(30px,-20px)} 66%{transform:translate(-20px,10px)} }
       `}</style>
       <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, #7C3AED11 0%, transparent 70%)", animation: "orb 8s ease-in-out infinite", top: "10%", left: "10%" }} />
@@ -398,18 +399,56 @@ function SignUp({ onDone }) {
         <div style={{ width: 60, height: 2, background: `linear-gradient(90deg, transparent, ${C.purple}, transparent)`, margin: "0 auto 32px", boxShadow: `0 0 10px ${C.purple}` }} />
         <p style={{ color: C.muted, fontSize: 15, marginBottom: 40, maxWidth: 400, lineHeight: 1.7 }}>Your complete revision companion for OCR GCSE Psychology. Topics, flashcards, exam questions & past papers — all in one place.</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <button style={{ ...s.btn(), padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10, boxShadow: `0 0 20px #7C3AED44`, animation: "pulse 2s ease-in-out infinite" }} onClick={() => next(1)}>Get Started →</button>
-          <button style={{ ...s.obtn, padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10 }} onClick={() => onDone({ name: "Guest", year: "11", current: "?", target: "9" })}>Continue as Guest</button>
+          <button style={{ ...s.btn(), padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10, boxShadow: `0 0 20px #7C3AED44`, animation: "pulse 2s ease-in-out infinite" }} onClick={() => setMode("signup")}>Get Started →</button>
+          <button style={{ ...s.obtn, padding: "0.75rem 2rem", fontSize: 15, borderRadius: 10 }} onClick={() => setMode("login")}>Log In</button>
         </div>
+        <button style={{ background: "none", border: "none", color: C.dim, fontSize: 12, cursor: "pointer", marginTop: 16 }} onClick={() => onDone({ name: "Guest", year: "11", current: "?", target: "9" })}>Continue as Guest</button>
         <p style={{ color: C.dim, fontSize: 11, marginTop: 48, letterSpacing: 2 }}>MADE BY Z41N</p>
       </div>
     </div>
   );
 
-  if (step === 1) return (
+  // ── LOGIN ──
+  if (mode === "login") return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <FloatingStars />
-      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div style={{ ...animStyle, width: "100%", maxWidth: 440, position: "relative", zIndex: 1 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+          <h2 style={{ color: C.bright, fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Welcome back</h2>
+          <p style={{ color: C.muted, fontSize: 13 }}>Log in to your PsychRevise account</p>
+        </div>
+        <div style={s.card}>
+          {error && <div style={{ background: "#f8717122", border: "1px solid #f8717144", borderRadius: 8, padding: "0.6rem 0.9rem", color: C.red, fontSize: 13, marginBottom: 14 }}>{error}</div>}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ ...s.label, marginBottom: 6 }}>Email</div>
+            <input style={s.inp} type="email" placeholder="you@school.com" value={form.email} onChange={e => set("email", e.target.value)} />
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ ...s.label, marginBottom: 6 }}>Password</div>
+            <input style={s.inp} type="password" placeholder="••••••••" value={form.password} onChange={e => set("password", e.target.value)} />
+          </div>
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => {
+            if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
+            if (!form.email.includes("@")) { setError("Please enter a valid email address."); return; }
+            if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+            // For now log in as a returning user with saved name or email prefix
+            onDone({ name: form.email.split("@")[0], year: "11", current: "?", target: "9" });
+          }}>Log In →</button>
+          <div style={{ textAlign: "center", marginTop: 14 }}>
+            <button style={{ background: "none", border: "none", color: C.muted, fontSize: 12, cursor: "pointer" }} onClick={() => setMode("landing")}>← Back</button>
+            <span style={{ color: C.dim, fontSize: 12, margin: "0 8px" }}>·</span>
+            <button style={{ background: "none", border: "none", color: C.purple, fontSize: 12, cursor: "pointer" }} onClick={() => setMode("signup")}>Don't have an account? Sign up</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── SIGN UP STEP 1 ──
+  if (mode === "signup" && step === 1) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <FloatingStars />
       <div style={{ ...animStyle, width: "100%", maxWidth: 440, position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
@@ -420,6 +459,7 @@ function SignUp({ onDone }) {
           </div>
         </div>
         <div style={s.card}>
+          {error && <div style={{ background: "#f8717122", border: "1px solid #f8717144", borderRadius: 8, padding: "0.6rem 0.9rem", color: C.red, fontSize: 13, marginBottom: 14 }}>{error}</div>}
           <div style={{ marginBottom: 14 }}>
             <div style={{ ...s.label, marginBottom: 6 }}>Your Name</div>
             <input style={s.inp} placeholder="e.g. Alex" value={form.name} onChange={e => set("name", e.target.value)} />
@@ -432,13 +472,24 @@ function SignUp({ onDone }) {
             <div style={{ ...s.label, marginBottom: 6 }}>Password</div>
             <input style={s.inp} type="password" placeholder="••••••••" value={form.password} onChange={e => set("password", e.target.value)} />
           </div>
-          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => form.name && form.email ? next(2) : null}>Continue →</button>
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => {
+            if (!form.name.trim()) { setError("Please enter your name."); return; }
+            if (!form.email.includes("@") || !form.email.includes(".")) { setError("Please enter a valid email address."); return; }
+            if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+            next(2);
+          }}>Continue →</button>
+          <div style={{ textAlign: "center", marginTop: 14 }}>
+            <button style={{ background: "none", border: "none", color: C.muted, fontSize: 12, cursor: "pointer" }} onClick={() => setMode("landing")}>← Back</button>
+            <span style={{ color: C.dim, fontSize: 12, margin: "0 8px" }}>·</span>
+            <button style={{ background: "none", border: "none", color: C.purple, fontSize: 12, cursor: "pointer" }} onClick={() => setMode("login")}>Already have an account? Log in</button>
+          </div>
         </div>
       </div>
     </div>
   );
 
-  if (step === 2) return (
+  // ── SIGN UP STEP 2 ──
+  if (mode === "signup" && step === 2) return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <FloatingStars />
       <div style={{ ...animStyle, width: "100%", maxWidth: 500, position: "relative", zIndex: 1 }}>
@@ -463,7 +514,8 @@ function SignUp({ onDone }) {
     </div>
   );
 
-  if (step === 3) return (
+  // ── SIGN UP STEP 3 ──
+  if (mode === "signup" && step === 3) return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <FloatingStars />
       <div style={{ ...animStyle, width: "100%", maxWidth: 500, position: "relative", zIndex: 1 }}>
@@ -476,6 +528,7 @@ function SignUp({ onDone }) {
           </div>
         </div>
         <div style={s.card}>
+          {error && <div style={{ background: "#f8717122", border: "1px solid #f8717144", borderRadius: 8, padding: "0.6rem 0.9rem", color: C.red, fontSize: 13, marginBottom: 14 }}>{error}</div>}
           <div style={{ marginBottom: 20 }}>
             <div style={{ ...s.label, marginBottom: 10 }}>Current Grade</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -492,13 +545,18 @@ function SignUp({ onDone }) {
               ))}
             </div>
           </div>
-          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => form.current && form.target ? next(4) : null}>Let's go! 🚀</button>
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => {
+            if (!form.current) { setError("Please select your current grade."); return; }
+            if (!form.target) { setError("Please select your target grade."); return; }
+            next(4);
+          }}>Let's go! 🚀</button>
         </div>
       </div>
     </div>
   );
 
-  if (step === 4) return (
+  // ── SIGN UP STEP 4 (done) ──
+  if (mode === "signup" && step === 4) return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center" }}>
       <FloatingStars />
       <style>{`
@@ -532,7 +590,6 @@ function SignUp({ onDone }) {
 
   return null;
 }
-
 // ─── PAGES ────────────────────────────────────────────────────────────────────
 function Home({ go, user }) {
   return (
