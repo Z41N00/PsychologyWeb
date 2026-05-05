@@ -1,11 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { useState, useEffect } from "react";
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.REACT_APP_SUPABASE_ANON_KEY
 );
-
-import { useState, useEffect } from "react";
 
 const C = {
   bg: "#0f0f13", card: "#1c1c26", nav: "#18181f", border: "#2a2a3a",
@@ -374,7 +373,7 @@ function PaperTable({ paper }) {
 
 // ─── SIGN UP FLOW ─────────────────────────────────────────────────────────────
 function SignUp({ onDone }) {
-  const [mode, setMode] = useState("landing"); // landing, login, signup steps
+  const [mode, setMode] = useState("landing");
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ email: "", password: "", name: "", year: "", current: "", target: "" });
   const [animIn, setAnimIn] = useState(true);
@@ -435,12 +434,13 @@ function SignUp({ onDone }) {
             <div style={{ ...s.label, marginBottom: 6 }}>Password</div>
             <input style={s.inp} type="password" placeholder="••••••••" value={form.password} onChange={e => set("password", e.target.value)} />
           </div>
-          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => {
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={async () => {
             if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
             if (!form.email.includes("@")) { setError("Please enter a valid email address."); return; }
             if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
-            // For now log in as a returning user with saved name or email prefix
-            onDone({ name: form.email.split("@")[0], year: "11", current: "?", target: "9" });
+            const { data, error: err } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
+            if (err) { setError("Invalid email or password."); return; }
+            onDone({ name: data.user.user_metadata?.name || form.email.split("@")[0], year: "11", current: "?", target: "9" });
           }}>Log In →</button>
           <div style={{ textAlign: "center", marginTop: 14 }}>
             <button style={{ background: "none", border: "none", color: C.muted, fontSize: 12, cursor: "pointer" }} onClick={() => setMode("landing")}>← Back</button>
@@ -479,10 +479,16 @@ function SignUp({ onDone }) {
             <div style={{ ...s.label, marginBottom: 6 }}>Password</div>
             <input style={s.inp} type="password" placeholder="••••••••" value={form.password} onChange={e => set("password", e.target.value)} />
           </div>
-          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={() => {
+          <button style={{ ...s.btn(), width: "100%", padding: "0.75rem", fontSize: 14 }} onClick={async () => {
             if (!form.name.trim()) { setError("Please enter your name."); return; }
             if (!form.email.includes("@") || !form.email.includes(".")) { setError("Please enter a valid email address."); return; }
             if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
+            const { error: err } = await supabase.auth.signUp({
+              email: form.email,
+              password: form.password,
+              options: { data: { name: form.name } }
+            });
+            if (err) { setError(err.message); return; }
             next(2);
           }}>Continue →</button>
           <div style={{ textAlign: "center", marginTop: 14 }}>
@@ -597,6 +603,7 @@ function SignUp({ onDone }) {
 
   return null;
 }
+
 // ─── PAGES ────────────────────────────────────────────────────────────────────
 function Home({ go, user }) {
   return (
@@ -826,7 +833,6 @@ function Exam() {
   return (
     <div>
       <h1 style={s.h1}>Exam Questions</h1>
-      {/* Purple progress bar */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
           <span style={{ color: C.muted, fontSize: 12 }}>Overall Progress</span>
@@ -937,8 +943,6 @@ function Papers() {
       {tab === "tracker" && (
         <div>
           <p style={{ color: C.muted, fontSize: 13, marginBottom: "1.25rem" }}>Log your scores after completing a past paper. Grades are calculated using 2025 OCR boundaries.</p>
-
-          {/* Log form */}
           <div style={{ ...s.card, background: "#1a1228", border: `1px solid ${C.purpleBorder}`, marginBottom: "1.5rem" }}>
             <div style={{ color: C.purple, fontWeight: 700, fontSize: 13, marginBottom: 14 }}>+ LOG A PAPER</div>
             <div style={s.grid(150)}>
@@ -959,8 +963,6 @@ function Papers() {
             </div>
             <button style={{ ...s.btn(), marginTop: 14 }} onClick={addLog}>Save Score →</button>
           </div>
-
-          {/* Logged results */}
           {Object.keys(logs).length === 0 ? (
             <div style={{ ...s.card, textAlign: "center", padding: "2rem", color: C.muted }}>No papers logged yet. Complete a past paper and log your score above!</div>
           ) : (
@@ -994,8 +996,6 @@ function Papers() {
                   </tbody>
                 </table>
               </div>
-
-              {/* Progress trend */}
               {Object.keys(logs).length >= 2 && (
                 <div style={{ ...s.card, marginTop: "1rem", background: "#0f1a0f", border: `1px solid ${C.greenBorder}` }}>
                   <div style={{ color: C.green, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>📈 SCORE TREND</div>
@@ -1038,8 +1038,6 @@ function Papers() {
               </div>
             ))}
           </div>
-
-          {/* Year 10 / Year 11 context */}
           <div style={{ ...s.grid(260) }}>
             {[
               { year: "Year 10", icon: "📖", msg: "Use these boundaries to understand what you're working towards. Don't stress — you have time to build up!", color: "#60a5fa" },
